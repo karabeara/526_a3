@@ -14,72 +14,72 @@ void R3StopBrdf();
 class R3Brdf {
     public:
         // Constructor functions
-	R3Brdf(const char *name = NULL);
-        R3Brdf(const R3Brdf& brdf, const char *name = NULL);
-        R3Brdf(const RNRgb& rgb, 
-               RNScalar shininess = 0.0,
-               RNScalar opacity = 1.0,
-               RNScalar indexofrefraction = 1.0,
-               const char *name = NULL);
-        R3Brdf(RNScalar red, RNScalar green, RNScalar blue,
-               RNScalar shininess = 0.0,
-               RNScalar opacity = 1.0,
-               RNScalar indexofrefraction = 1.0,
-               const char *name = NULL);
-        R3Brdf(const RNRgb& ambient,
-               const RNRgb& diffuse,
-               const RNRgb& specular,
-               const RNRgb& emission,
-               RNScalar shininess = 0.0,
-               RNScalar opacity = 1.0,
-               RNScalar indexofrefraction = 1.0,
-               const char *name = NULL);
-        R3Brdf(const RNRgb& ambient,
-               const RNRgb& diffuse,
-               const RNRgb& specular,
-               const RNRgb& transmission,
-               const RNRgb& emission,
-               RNScalar shininess = 0.0,
-               RNScalar indexofrefraction = 1.0,
-               const char *name = NULL);
-        virtual ~R3Brdf(void);
+	  R3Brdf(const char *name = NULL);
+    R3Brdf(const R3Brdf& brdf, const char *name = NULL);
+    R3Brdf(const RNRgb& rgb, 
+           RNScalar shininess = 0.0,
+           RNScalar opacity = 1.0,
+           RNScalar indexofrefraction = 1.0,
+           const char *name = NULL);
+    R3Brdf(RNScalar red, RNScalar green, RNScalar blue,
+           RNScalar shininess = 0.0,
+           RNScalar opacity = 1.0,
+           RNScalar indexofrefraction = 1.0,
+           const char *name = NULL);
+    R3Brdf(const RNRgb& ambient,
+           const RNRgb& diffuse,
+           const RNRgb& specular,
+           const RNRgb& emission,
+           RNScalar shininess = 0.0,
+           RNScalar opacity = 1.0,
+           RNScalar indexofrefraction = 1.0,
+           const char *name = NULL);
+    R3Brdf(const RNRgb& ambient,
+           const RNRgb& diffuse,
+           const RNRgb& specular,
+           const RNRgb& transmission,
+           const RNRgb& emission,
+           RNScalar shininess = 0.0,
+           RNScalar indexofrefraction = 1.0,
+           const char *name = NULL);
+    virtual ~R3Brdf(void);
   
-	// Property functions/operators
-        R3Scene *Scene(void) const;
-        int SceneIndex(void) const;
-        const char *Name(void) const;
+	  // Property functions/operators
+    R3Scene *Scene(void) const;
+    int SceneIndex(void) const;
+    const char *Name(void) const;
   	const RNRgb& Ambient(void) const;
   	const RNRgb& Diffuse(void) const;
   	const RNRgb& Specular(void) const;
   	const RNRgb& Transmission(void) const;
   	const RNRgb& Emission(void) const;
-        const RNScalar Shininess(void) const;
-        const RNScalar Opacity(void) const;
-        const RNScalar IndexOfRefraction(void) const;
-	const int IsAmbient(void) const;
-	const int IsDiffuse(void) const;
-	const int IsSpecular(void) const;
-	const int IsTransparent(void) const;
-	const int IsEmissive(void) const;
-	const int IsShiny(void) const;
-	const RNFlags Flags(void) const;
-	const int ID(void) const;
+    const RNScalar Shininess(void) const;
+    const RNScalar Opacity(void) const;
+    const RNScalar IndexOfRefraction(void) const;
+  	const int IsAmbient(void) const;
+  	const int IsDiffuse(void) const;
+  	const int IsSpecular(void) const;
+  	const int IsTransparent(void) const;
+  	const int IsEmissive(void) const;
+  	const int IsShiny(void) const;
+  	const RNFlags Flags(void) const;
+  	const int ID(void) const;
 
 	// Manipulation functions/operations
-        void SetName(const char *name);
-        void SetAmbient(const RNRgb& rgb);
+    void SetName(const char *name);
+    void SetAmbient(const RNRgb& rgb);
   	void SetDiffuse(const RNRgb& rgb);
   	void SetSpecular(const RNRgb& rgb);
   	void SetTransmission(const RNRgb& rgb);
   	void SetEmission(const RNRgb& rgb);
-        void SetShininess(RNScalar shininess);
-        void SetOpacity(RNScalar opacity);
-        void SetIndexOfRefraction(RNScalar indexofrefraction);
+    void SetShininess(RNScalar shininess);
+    void SetOpacity(RNScalar opacity);
+    void SetIndexOfRefraction(RNScalar indexofrefraction);
 
-	// Draw functions/operations
-        void Load(void) const;
-        void Unload(void) const;
-        void Draw(RNBoolean force = FALSE) const;
+    // Draw functions/operations
+    void Load(void) const;
+    void Unload(void) const;
+    void Draw(RNBoolean force = FALSE) const;
 
     protected:
         // Upkeep functions/operators
@@ -91,14 +91,14 @@ class R3Brdf {
         R3Scene *scene;
         int scene_index;
         char *name;
-	RNRgb ambient;
-	RNRgb diffuse;
-	RNRgb specular;
+        RNRgb ambient;
+	      RNRgb diffuse;
+	      RNRgb specular;
         RNRgb transmission;
-	RNRgb emission;
-	RNScalar shininess;
+	      RNRgb emission;
+	      RNScalar shininess;
         RNScalar indexofrefraction;
-	RNFlags flags;
+	      RNFlags flags;
         int id;
 };
 

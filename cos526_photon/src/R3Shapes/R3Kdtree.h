@@ -20,7 +20,7 @@ public:
   // Constructor/destructors
   R3Kdtree(const R3Box& bbox, int position_offset = 0);
   R3Kdtree(const R3Box& bbox, R3Point (*position_callback)(PtrType, void *), void *data = NULL);
-  R3Kdtree(const RNArray<PtrType>& points, int position_offset = 0);
+  R3Kdtree(const RNArray<PtrType>& points, int position_offset = 0); //******
   R3Kdtree(const RNArray<PtrType>& points, R3Point (*position_callback)(PtrType, void *), void *data = NULL);
   R3Kdtree(const R3Kdtree<PtrType>& kdtree);
   ~R3Kdtree(void);

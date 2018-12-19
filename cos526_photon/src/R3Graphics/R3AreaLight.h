@@ -45,7 +45,9 @@ class R3AreaLight : public R3Light {
 	    const R3Point& point, const R3Vector& normal) const;
 
 	// Draw functions/operations
-        virtual void Draw(int i) const;
+    virtual void Draw(int i) const;
+
+    const R3Ray RandomlySampledRay(void) const;
 
 	// Class type definitions
 	RN_CLASS_TYPE_DECLARATIONS(R3AreaLight);

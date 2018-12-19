@@ -5,7 +5,11 @@
 /* Include files */
 
 #include "R3Graphics.h"
-
+#include<random>
+#include<cmath>
+#include<chrono>
+#include <iostream>
+using namespace std;
 
 
 /* Class type definitions */
@@ -142,4 +146,17 @@ SetColor(const RNRgb& color)
 }
 
 
+const R3Ray R3Light::
+RandomlySampledRay(void) const
+{
+    R3Point pt_1 = R3Point(8,8,8);
+    R3Point pt_2 = R3Point(1,1,1);
 
+    cout << "z: " << 19999999 << endl;
+
+    R3Ray ray2 = R3Ray(pt_1, pt_2);
+
+    //R3Ray ray = R3Ray(R3Point(4,4,4), R3Point(1,2,3));
+
+    return ray2;
+}

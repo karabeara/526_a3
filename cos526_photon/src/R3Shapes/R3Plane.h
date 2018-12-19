@@ -44,7 +44,7 @@ class R3Plane {
 	void Translate(const R3Vector& vector);
 	void Reposition(const R3Point& point);
 	void Align(const R3Vector& normal);
-        void Transform(const R3Transformation& transformation);
+    void Transform(const R3Transformation& transformation);
 	void InverseTransform(const R3Transformation& transformation);
 	void Reset(const R3Point& point, const R3Vector& normal);
 

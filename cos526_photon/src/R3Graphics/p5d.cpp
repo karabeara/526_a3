@@ -442,7 +442,7 @@ ParseObject(P5DObject *object, Json::Value *json_object, int idx_index)
   
   // Fix id
   if (object->id) {
-    if (strchr(object->id, '/') >= 0) {
+    if (strchr(object->id, '/') >= (char *)0) {
       char *copy = strdup(object->id);
       free(object->id);
       object->id = (char *) malloc(2*strlen(copy));

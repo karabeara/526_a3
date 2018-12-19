@@ -15,7 +15,7 @@ class R3Vector /* : public R3Base */ {
     public:
         // Constructor functions
 	R3Vector(void);
-        R3Vector(const R3Vector& vector);
+    R3Vector(const R3Vector& vector);
 	R3Vector(RNCoord x, RNCoord y, RNCoord z);
 	R3Vector(const RNCoord array[3]);
 	R3Vector(RNAngle pitch, RNAngle yaw);
@@ -73,7 +73,7 @@ class R3Vector /* : public R3Base */ {
 	R3Vector& operator+=(const R3Vector& vector);
 	R3Vector& operator-=(const R3Vector& vector);
 	R3Vector& operator*=(const RNScalar a);
-        R3Vector& operator*=(const R3Vector& vector);
+    R3Vector& operator*=(const R3Vector& vector);
 	R3Vector& operator/=(const RNScalar a);
 	R3Vector& operator/=(const R3Vector& vector);
 

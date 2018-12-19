@@ -5,8 +5,11 @@
 /* Include files */
 
 #include "R3Graphics.h"
-
-
+#include<random>
+#include<cmath>
+#include<chrono>
+#include <iostream>
+using namespace std;
 
 /* Public variables */
 
@@ -170,6 +173,18 @@ Reflection(const R3Brdf& brdf, const R3Point& eye,
     return rgb;
 }
 
+
+// Give a randomly sampled array from a point light
+const R3Ray R3DirectionalLight::
+RandomlySampledRay(void) const
+{
+    R3Point  pt        = R3Point(0, 0, 0);
+    R3Vector direction = Direction();
+
+    R3Ray ray = R3Ray(pt, direction);
+
+    return ray;
+}
 
 
 void R3DirectionalLight::

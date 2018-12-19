@@ -13,19 +13,19 @@ void R3StopRay();
 
 class R3Ray {
     public:
-        // Constructor functions
+    // Constructor functions
 	R3Ray(void);
 	R3Ray(const R3Ray& ray);
 	R3Ray(const R3Point& point, const R3Vector& vector, RNBoolean normalized = FALSE);
 	R3Ray(const R3Point& point1, const R3Point& point2);
 	R3Ray(RNCoord x1, RNCoord y1, RNCoord z1, RNCoord x2, RNCoord y2, RNCoord z2);
 
-        // Property functions/operators
-        const R3Point& Start(void) const;
-        const R3Vector& Vector(void) const;
-        const R3Line& Line(void) const;
-	const R3Point Point(RNScalar t) const;
-	const RNScalar T(const R3Point& point) const;
+    // Property functions/operators
+    const R3Point&  Start(void) const;
+    const R3Vector& Vector(void) const;
+    const R3Line&   Line(void) const;
+	const R3Point   Point(RNScalar t) const;
+	const RNScalar  T(const R3Point& point) const;
 	const RNBoolean IsZero(void) const;
 	const RNBoolean operator==(const R3Ray& ray) const;
 	const RNBoolean operator!=(const R3Ray& ray) const;
@@ -33,15 +33,15 @@ class R3Ray {
 	// Manipulation functions/operators
 	void Flip(void);
 	void Mirror(const R3Plane& plane);
-        void Translate(const R3Vector& vector);
-        void Reposition(const R3Point& point);
-        void Align(const R3Vector& vector, RNBoolean normalized = FALSE);
-        void Transform(const R3Transformation& transformation);
+    void Translate(const R3Vector& vector);
+    void Reposition(const R3Point& point);
+    void Align(const R3Vector& vector, RNBoolean normalized = FALSE);
+    void Transform(const R3Transformation& transformation);
 	void InverseTransform(const R3Transformation& transformation);
 	void Reset(const R3Point& point, const R3Vector& vector, RNBoolean normalized = FALSE);
 
-        // Draw functions/operators
-        void Draw(void) const;
+    // Draw functions/operators
+    void Draw(void) const;
 
 	// Arithmetic functions/operators
 	R3Ray operator-(void) const;

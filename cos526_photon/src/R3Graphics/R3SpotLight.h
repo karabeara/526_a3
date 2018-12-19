@@ -14,12 +14,12 @@ void R3StopSpotLight();
 class R3SpotLight : public R3PointLight {
     public:
         // Constructor functions
-	R3SpotLight(void);
-        R3SpotLight(const R3SpotLight& light);
-        R3SpotLight(const R3Point& position, const R3Vector& direction,
-	    const RNRgb& color, RNScalar dropoffrate = 0.0, RNAngle cutoffangle = 0.785398,
-            RNScalar intensity = 1.0, RNBoolean active = TRUE,
-            RNScalar ca = 0, RNScalar la = 0, RNScalar qa = 1);
+	     R3SpotLight(void);
+       R3SpotLight(const R3SpotLight& light);
+       R3SpotLight(const R3Point& position, const R3Vector& direction,
+	                 const RNRgb& color, RNScalar dropoffrate = 0.0, RNAngle cutoffangle = 0.785398,
+                   RNScalar intensity = 1.0, RNBoolean active = TRUE,
+                   RNScalar ca = 0, RNScalar la = 0, RNScalar qa = 1);
 
 	// Property functions/operators
   	const R3Vector& Direction(void) const;
@@ -35,7 +35,9 @@ class R3SpotLight : public R3PointLight {
 	virtual RNScalar IntensityAtPoint(const R3Point& point) const;
 
 	// Draw functions/operations
-        virtual void Draw(int i) const;
+  virtual void Draw(int i) const;
+
+  //virtual R3Ray RandomlySampledRay(void) const;
 
 	// Class type definitions
 	RN_CLASS_TYPE_DECLARATIONS(R3SpotLight);

@@ -7,22 +7,19 @@
 #include "R3Graphics/R3Graphics.h"
 #include "fglut/fglut.h"
 #include "render.h"
-
-
+#include <iostream>
+using namespace std;
 
 // Program variables
-
 static char *input_scene_name = NULL;
 static char *output_image_name = NULL;
 static char *screenshot_image_name = NULL;
 static int render_image_width = 64;
 static int render_image_height = 64;
+static int photon_count = 1000;
 static int print_verbose = 0;
 
-
-
 // GLUT variables 
-
 static int GLUTwindow = 0;
 static int GLUTwindow_height = 800;
 static int GLUTwindow_width = 800;
@@ -34,22 +31,21 @@ static int GLUTmodifiers = 0;
 
 
 // Application variables
-
 static R3Viewer *viewer = NULL;
 static R3Scene *scene = NULL;
 static R3Point center(0, 0, 0);
-
+static RNArray<Photon *> All_Photons;
 
 
 // Display variables
-
 static int show_shapes = 1;
 static int show_camera = 0;
 static int show_lights = 0;
 static int show_bboxes = 0;
 static int show_rays = 0;
 static int show_frame_rate = 0;
-
+static int show_photons = 0;
+static int show_photon_ray_paths = 0;
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -150,6 +146,7 @@ DrawLights(R3Scene *scene)
       R3Vector direction = directional_light->Direction();
 
       // Draw direction vector
+      //******
       glBegin(GL_LINES);
       R3Point centroid = scene->BBox().Centroid();
       R3LoadPoint(centroid - radius * direction);
@@ -265,6 +262,110 @@ DrawRays(R3Scene *scene)
 }
 
 
+/* RAY TRACING VISUALIZATION: 
+Visualize ray paths traced from the camera -- e.g., show line segments between the 
+camera and successive surface intersections for a random sampling of rays. */
+
+static void 
+DrawPhotonRayPaths(R3Scene *scene)
+{
+  double radius = 0.01 * scene->BBox().DiagonalRadius();
+
+  for (int i = 0; i < 2 * photon_count; i++) 
+  {
+
+    if (i >= photon_count) 
+    {
+      glColor3d(1.0, 0.0, 1.0);
+      //cout << "HELLO: " << i << endl;
+    }
+
+    Photon *Current_Photon = All_Photons.Kth(i); 
+    // cout << ">>>>>>>i: " << i << endl;
+    // cout << "Position X: " << Current_Photon->GetPosition().X() << endl;
+    // cout << "Position Y: " << Current_Photon->GetPosition().Y() << endl;
+    // cout << "Position Z: " << Current_Photon->GetPosition().Z() << endl;
+    // cout << "Start X: " << Current_Photon->GetDirection().Start().X() << endl;
+    // cout << "Start Y: " << Current_Photon->GetDirection().Start().Y() << endl;
+    // cout << "Start Z: " << Current_Photon->GetDirection().Start().Z() << endl;
+    // cout << ": " << (All_Photons.Kth(0)->GetDirection().Start().X() == All_Photons.Kth(4)->GetDirection().Start().X()) << endl;
+
+    float origin_X = Current_Photon->GetDirection().Start().X();
+    float origin_Y = Current_Photon->GetDirection().Start().Y();
+    float origin_Z = Current_Photon->GetDirection().Start().Z();
+
+    if (i >= photon_count) {
+      R3Sphere(Current_Photon->GetPosition(), radius).Draw();
+    }
+    //R3Sphere(Current_Photon->GetPosition(), radius).Draw();
+
+    float destination_X = Current_Photon->GetPosition().X();
+    float destination_Y = Current_Photon->GetPosition().Y();
+    float destination_Z = Current_Photon->GetPosition().Z();
+
+    glBegin(GL_LINES);
+
+    glVertex3d(origin_X, 
+               origin_Y,
+               origin_Z);
+    glVertex3d(destination_X,
+               destination_Y, 
+               destination_Z);
+    glEnd();
+  }
+
+  //cout << "" << endl;
+}
+
+
+
+/* PHOTON MAP VISUALIZATION: 
+Visualize photons stored in your photon map(s) 
+-- e.g., show positions, normals, and powers of photons. */
+
+static void 
+DrawPhotons(R3Scene *scene)
+{
+  // Ray intersection variables
+  R3SceneNode *node;
+  R3SceneElement *element;
+  R3Shape *shape;
+  R3Point point;
+  R3Vector normal;
+  RNScalar t;
+
+  // Ray intersection variables
+  double radius = 0.0025 * scene->BBox().DiagonalRadius();
+  //double radius = 0.03 * scene->BBox().DiagonalRadius();
+
+  for (int i = 0; i < 2 * photon_count; i++) 
+  {
+
+    Photon *Current_Photon = All_Photons.Kth(i);
+
+    float r_Power = Current_Photon->GetPower().R();
+    float g_Power = Current_Photon->GetPower().G();
+    float b_Power = Current_Photon->GetPower().B();
+
+    glColor3d(r_Power, g_Power, b_Power);
+
+    R3Point  photon_position  = Current_Photon->GetPosition();
+    R3Ray    photon_direction = Current_Photon->GetDirection();
+    R3Vector photon_normal    = -photon_direction.Vector();
+    RNRgb    photon_power     = Current_Photon->GetPower();
+
+    // Show photon positions 
+    R3Sphere(photon_position, radius).Draw();
+
+    // Show photon normals 
+    //R3Span(photon_position, photon_position + 20 * radius * photon_normal).Draw();
+
+    // Show power of photons
+
+    glEnd();
+  }
+
+}
 
 ////////////////////////////////////////////////////////////////////////
 // Glut user interface functions
@@ -321,6 +422,24 @@ void GLUTRedraw(void)
     glColor3d(0.0, 1.0, 0.0);
     glLineWidth(3);
     DrawRays(scene);
+    glLineWidth(1);
+  }
+
+  // Draw photon ray paths
+  if (show_photon_ray_paths) {
+    glDisable(GL_LIGHTING);
+    glColor3d(0.0, 1.0, 0.0);
+    glLineWidth(3);
+    DrawPhotonRayPaths(scene);
+    glLineWidth(1);
+  }
+
+  // Draw photon ray paths
+  if (show_photons) {
+    glDisable(GL_LIGHTING);
+    glColor3d(1.0, 0.0, 0.0);
+    glLineWidth(3);
+    DrawPhotons(scene);
     glLineWidth(1);
   }
 
@@ -509,6 +628,11 @@ void GLUTKeyboard(unsigned char key, int x, int y)
     show_lights = !show_lights;
     break;
 
+  case 'P':
+  case 'p':
+    show_rays = !show_rays;
+    break;
+
   case 'R':
   case 'r':
     show_rays = !show_rays;
@@ -676,6 +800,15 @@ ParseArgs(int argc, char **argv)
       if (!strcmp(*argv, "-v")) {
         print_verbose = 1; 
       }
+      else if (!strcmp(*argv, "-photonCount")) {
+        argc--; argv++; photon_count = atoi(*argv); 
+      }
+      else if (!strcmp(*argv, "-showRayPaths")) {
+        show_photon_ray_paths = 1; 
+      }
+      else if (!strcmp(*argv, "-showPhotons")) {
+        show_photons = 1; 
+      }
       else if (!strcmp(*argv, "-resolution")) { 
         argc--; argv++; render_image_width = atoi(*argv); 
         argc--; argv++; render_image_height = atoi(*argv); 
@@ -710,6 +843,7 @@ ParseArgs(int argc, char **argv)
 // Main program
 ////////////////////////////////////////////////////////////////////////
 
+
 int main(int argc, char **argv)
 {
   // Parse program arguments
@@ -720,20 +854,57 @@ int main(int argc, char **argv)
   if (!scene) exit(-1);
 
   // Check output image file
+  // Offline render part
   if (output_image_name) {
-    // Set scene viewport
+
+    //Set scene viewport
     scene->SetViewport(R2Viewport(0, 0, render_image_width, render_image_height));
 
-    // Render image
-    R2Image *image = RenderImage(scene, render_image_width, render_image_height, print_verbose);
-    if (!image) exit(-1);
+    // Initialize GLUT
+    GLUTInit(&argc, argv);
 
-    // Write image
-    if (!WriteImage(image, output_image_name)) exit(-1);
-    
-    // Delete image
-    delete image;
+    viewer = new R3Viewer(scene->Viewer());
+    if (!viewer) exit(-1);
+
+    /* PHOTON EMISSION: 
+    Implement code to emit photons in random directions from every light source in a scene. 
+    The total number of photons emitted for each light source should be proportional to 
+    the power of the light source (so that each photon carries approximately equal power), 
+    and the distribution of photons should be proportional to the power in each direction 
+    -- e.g., for spot lights (section 2.1.1 in Jensen01). */
+
+    // Emit [ n = photon_count ] photons into the scene
+    R3Kdtree<Photon *> Photon_Map = EmitPhotons(scene, 
+                                                photon_count, 
+                                                &All_Photons);
+
+    /* PHOTON SCATTERING: 
+    Trace photons via reflections and transmissions through the scene. 
+    At each ray-surface intersection, randomly generate a secondary ray along a direction 
+    of diffuse reflection, specular reflection, transmission, or absorption with probability 
+    proportional to kd, ks, kt, and (1 - kd+ks+kt), respectively (section 2.1.2 in Jensen01). */
+
+
+    //Render image calling method in render.cpp
+    R2Image *image = RenderImagePhotonMapping(scene, 
+                                              render_image_width, 
+                                              render_image_height, 
+                                              photon_count,
+                                              Photon_Map);
+
+    // if (!image) exit(-1);
+
+    // // Write image
+    // if (!WriteImage(image, output_image_name)) exit(-1);
+
+    // Run GLUT interface
+    GLUTMainLoop();
+
+    // Delete viewer (doesn't ever get here)
+    delete viewer;
+    //delete image;
   }
+
   else {
     // Initialize GLUT
     GLUTInit(&argc, argv);

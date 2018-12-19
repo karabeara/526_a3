@@ -1,7 +1,5 @@
 /* Include file for the R3 point light class */
 
-
-
 /* Initialization functions */
 
 int R3InitPointLight();
@@ -10,27 +8,30 @@ void R3StopPointLight();
 
 
 /* Class definition */
+// R3PointLight overriding R3Lighting virtual classes...
+// Give a random sampled ray from R3Light w/ different implementations for different light types
 
 class R3PointLight : public R3Light {
+
     public:
-        // Constructor functions
+    // Constructor functions
 	R3PointLight(void);
-        R3PointLight(const R3PointLight& light);
-        R3PointLight(const R3Point& position, const RNRgb& color, 
-            RNScalar intensity = 1.0, RNBoolean active = TRUE,
-            RNScalar ca = 0, RNScalar la = 0, RNScalar qa = 1);
+    R3PointLight(const R3PointLight& light);
+    R3PointLight(const R3Point& position, const RNRgb& color, 
+                 RNScalar intensity = 1.0, RNBoolean active = TRUE,
+                 RNScalar ca = 0, RNScalar la = 0, RNScalar qa = 1);
 
 	// Property functions/operators
   	const R3Point& Position(void) const;
-        const RNScalar ConstantAttenuation(void) const;
-        const RNScalar LinearAttenuation(void) const;
-        const RNScalar QuadraticAttenuation(void) const;
+    const RNScalar ConstantAttenuation(void) const;
+    const RNScalar LinearAttenuation(void) const;
+    const RNScalar QuadraticAttenuation(void) const;
 
 	// Manipulation functions/operations
   	virtual void SetPosition(const R3Point& position);
-        virtual void SetConstantAttenuation(RNScalar ca); 
-        virtual void SetLinearAttenuation(RNScalar la); 
-        virtual void SetQuadraticAttenuation(RNScalar qa); 
+    virtual void SetConstantAttenuation(RNScalar ca); 
+    virtual void SetLinearAttenuation(RNScalar la); 
+    virtual void SetQuadraticAttenuation(RNScalar qa); 
 
 	// Geometry evaluation functions
 	virtual RNScalar IntensityAtPoint(const R3Point& point) const;
@@ -40,23 +41,28 @@ class R3PointLight : public R3Light {
 
 	// Reflection evaluation functions
 	virtual RNRgb Reflection(const R3Brdf& brdf, const R3Point& eye, 
-	    const R3Point& point, const R3Vector& normal) const;
+	                         const R3Point& point, const R3Vector& normal) const;
 	virtual RNRgb DiffuseReflection(const R3Brdf& brdf, 
-	    const R3Point& point, const R3Vector& normal) const;
+	                                const R3Point& point, const R3Vector& normal) const;
 	virtual RNRgb SpecularReflection(const R3Brdf& brdf, const R3Point& eye, 
-	    const R3Point& point, const R3Vector& normal) const;
+	                                 const R3Point& point, const R3Vector& normal) const;
+
+    // Give a randomly sampled array from this light
+    const R3Ray RandomlySampledRay(void) const;
 
 	// Draw functions/operations
-        virtual void Draw(int i) const;
+    virtual void Draw(int i) const;
+
 
 	// Class type definitions
 	RN_CLASS_TYPE_DECLARATIONS(R3PointLight);
 
     private:
-	R3Point position;
+	    R3Point position;
         RNScalar constant_attenuation;
         RNScalar linear_attenuation;
         RNScalar quadratic_attenuation;
+        R3Ray ray;
 };
 
 
@@ -64,7 +70,6 @@ class R3PointLight : public R3Light {
 /* Public variables */
 
 extern R3PointLight R3null_point_light;
-
 
 
 /* Inline functions */
@@ -102,7 +107,6 @@ QuadraticAttenuation(void) const
     // Return quadratic coefficient of attenuation
     return quadratic_attenuation;
 }
-
 
 
 

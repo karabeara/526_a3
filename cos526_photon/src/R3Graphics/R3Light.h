@@ -13,49 +13,52 @@ void R3StopLight();
 
 class R3Light {
     public:
-        // Constructor functions
-	R3Light(const char *name = NULL);
-        R3Light(const R3Light& light, const char *name = NULL);
-        R3Light(const RNRgb& color, RNScalar intensity = 1.0, RNBoolean active = TRUE, const char *name = NULL);
-        virtual ~R3Light(void);
+      // Constructor functions
+      R3Light(const char *name = NULL);
+      R3Light(const R3Light& light, const char *name = NULL);
+      R3Light(const RNRgb& color, RNScalar intensity = 1.0, RNBoolean active = TRUE, const char *name = NULL);
+      virtual ~R3Light(void);
 
-	// Property functions/operations
-        R3Scene *Scene(void) const;
-        int SceneIndex(void) const;
-        const char *Name(void) const;
-	const RNBoolean IsActive(void) const;
-  	const RNScalar Intensity(void) const;
-  	const RNRgb& Color(void) const;
+      // Property functions/operations
+      R3Scene        *Scene(void) const;
+      int             SceneIndex(void) const;
+      const char     *Name(void) const;
+      const RNBoolean IsActive(void) const;
+      const RNScalar  Intensity(void) const;
+      const RNRgb    &Color(void) const;
 
-        // Manipulation functions/operations
-        virtual void SetName(const char *name);
-	virtual void SetActive(RNBoolean active);
-  	virtual void SetIntensity(RNScalar intensity);
-  	virtual void SetColor(const RNRgb& color);
+      // Manipulation functions/operations
+      virtual void SetName(const char *name);
+      virtual void SetActive(RNBoolean active);
+      virtual void SetIntensity(RNScalar intensity);
+      virtual void SetColor(const RNRgb& color);
 
-	// Reflection evaluation functions
-	virtual RNRgb Reflection(const R3Brdf& brdf, const R3Point& eye, 
-	    const R3Point& point, const R3Vector& normal) const = 0;
-	virtual RNRgb DiffuseReflection(const R3Brdf& brdf, 
-	    const R3Point& point, const R3Vector& normal) const = 0;
-	virtual RNRgb SpecularReflection(const R3Brdf& brdf, const R3Point& eye, 
-	    const R3Point& point, const R3Vector& normal) const = 0;
+      // Reflection evaluation functions
+      virtual RNRgb Reflection(const R3Brdf& brdf, const R3Point& eye, 
+                               const R3Point& point, const R3Vector& normal) const = 0;
+      virtual RNRgb DiffuseReflection(const R3Brdf& brdf, 
+                                      const R3Point& point, const R3Vector& normal) const = 0;
+      virtual RNRgb SpecularReflection(const R3Brdf& brdf, const R3Point& eye, 
+	                                     const R3Point& point, const R3Vector& normal) const = 0;
 
-	// Draw functions/operations
-        virtual void Draw(int i) const = 0;
+      // Give a randomly sampled array from this light
+      virtual const R3Ray RandomlySampledRay(void) const;
+      
+      // Draw functions/operations
+      virtual void Draw(int i) const = 0;
 
-	// Class type definitions
-	RN_CLASS_TYPE_DECLARATIONS(R3Light);
+      // Class type definitions
+      RN_CLASS_TYPE_DECLARATIONS(R3Light);
 
     private:
-        friend class R3Scene;
-        R3Scene *scene;
-        int scene_index;
-        char *name;
-	RNBoolean active;
-	RNScalar intensity;
-	RNRgb color;
-        int id;
+      friend class R3Scene;
+      R3Scene     *scene;
+      int          scene_index;
+      char        *name;
+      RNBoolean    active;
+      RNScalar     intensity;
+      RNRgb        color;
+      int          id;
 };
 
 
@@ -64,7 +67,6 @@ class R3Light {
 
 extern RNScalar R3ambient_light_intensity;
 extern RNRgb R3ambient_light_color;
-
 
 
 /* Inline functions */

@@ -16,7 +16,7 @@ class RNRgb /* : public RNColor */ {
         // Constructor functions
 	RNRgb(void);
 	RNRgb(const RNRgb& rgb);
-        RNRgb(RNScalar red, RNScalar green, RNScalar blue);
+    RNRgb(RNScalar red, RNScalar green, RNScalar blue);
 	RNRgb(const RNScalar array[3]);
 
         // Property functions/operators

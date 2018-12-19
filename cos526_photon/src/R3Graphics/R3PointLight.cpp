@@ -5,6 +5,11 @@
 /* Include files */
 
 #include "R3Graphics.h"
+#include<random>
+#include<cmath>
+#include<chrono>
+#include <iostream>
+using namespace std;
 
 
 
@@ -59,7 +64,7 @@ R3PointLight(const R3PointLight& light)
 
 R3PointLight::
 R3PointLight(const R3Point& position, const RNRgb& color,
-	     RNScalar intensity, RNBoolean active,
+	         RNScalar intensity, RNBoolean active,
              RNScalar ca, RNScalar la, RNScalar qa)
     : R3Light(color, intensity, active),
       position(position),
@@ -249,6 +254,41 @@ Reflection(const R3Brdf& brdf, const R3Point& eye,
     return rgb;
 }
 
+
+// Give a randomly sampled array from a point light
+const R3Ray R3PointLight::
+RandomlySampledRay(void) const
+{
+    R3Point pt_1 = Position();
+
+    // Generating Randomly uniformly-distributed point of the surface of a sphere
+    // Code referenced from: http://corysimon.github.io/articles/uniformdistn-on-sphere/
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    std::mt19937 generator (seed);
+    std::uniform_real_distribution<double> uniform01(0, 1.0);
+
+    double theta = 2 * M_PI * uniform01(generator);
+    double phi = acos(1 - 2 * uniform01(generator));
+    double x = sin(phi) * cos(theta);
+    double y = sin(phi) * sin(theta);
+    double z = cos(phi);
+
+    double dist = sqrt( x*x + y*y + z*z);
+
+    // cout << "x: " << x << endl;
+    // cout << "y: " << y << endl;
+    // cout << "z: " << z << endl;
+    // cout << "dist: " << dist << endl;
+    // cout << " " << endl;
+
+    R3Point pt_2 = R3Point(x + pt_1.X(), 
+                           y + pt_1.Y(), 
+                           z + pt_1.Z());
+
+    R3Ray ray = R3Ray(pt_1, pt_2);
+
+    return ray;
+}
 
 
 void R3PointLight::
