@@ -16,7 +16,8 @@ static char *output_image_name = NULL;
 static char *screenshot_image_name = NULL;
 static int render_image_width = 64;
 static int render_image_height = 64;
-static int photon_count = 1000;
+static int global_photon_count = 1000;
+static int caustic_photon_count = 1000;
 static int print_verbose = 0;
 
 // GLUT variables 
@@ -34,13 +35,14 @@ static int GLUTmodifiers = 0;
 static R3Viewer *viewer = NULL;
 static R3Scene *scene = NULL;
 static R3Point center(0, 0, 0);
-static RNArray<Photon *> All_Photons;
+static RNArray<Photon *> Global_Photons;
+static RNArray<Photon *> Caustic_Photons;
 
 
 // Display variables
 static int show_shapes = 1;
 static int show_camera = 0;
-static int show_lights = 0;
+static int show_lights = 1;
 static int show_bboxes = 0;
 static int show_rays = 0;
 static int show_frame_rate = 0;
@@ -269,18 +271,18 @@ camera and successive surface intersections for a random sampling of rays. */
 static void 
 DrawPhotonRayPaths(R3Scene *scene)
 {
-  double radius = 0.01 * scene->BBox().DiagonalRadius();
+  double radius = 0.02 * scene->BBox().DiagonalRadius();
 
-  for (int i = 0; i < 2 * photon_count; i++) 
+  for (int i = 0; i < Global_Photons.NEntries(); i++) 
   {
 
-    if (i >= photon_count) 
-    {
-      glColor3d(1.0, 0.0, 1.0);
-      //cout << "HELLO: " << i << endl;
-    }
+    // if (i >= global_photon_count) 
+    // {
+    //   glColor3d(1.0, 0.0, 1.0);
+    //   //cout << "HELLO: " << i << endl;
+    // }
 
-    Photon *Current_Photon = All_Photons.Kth(i); 
+    Photon *Current_Photon = Global_Photons.Kth(i); 
     // cout << ">>>>>>>i: " << i << endl;
     // cout << "Position X: " << Current_Photon->GetPosition().X() << endl;
     // cout << "Position Y: " << Current_Photon->GetPosition().Y() << endl;
@@ -294,9 +296,6 @@ DrawPhotonRayPaths(R3Scene *scene)
     float origin_Y = Current_Photon->GetDirection().Start().Y();
     float origin_Z = Current_Photon->GetDirection().Start().Z();
 
-    if (i >= photon_count) {
-      R3Sphere(Current_Photon->GetPosition(), radius).Draw();
-    }
     //R3Sphere(Current_Photon->GetPosition(), radius).Draw();
 
     float destination_X = Current_Photon->GetPosition().X();
@@ -338,10 +337,10 @@ DrawPhotons(R3Scene *scene)
   double radius = 0.0025 * scene->BBox().DiagonalRadius();
   //double radius = 0.03 * scene->BBox().DiagonalRadius();
 
-  for (int i = 0; i < 2 * photon_count; i++) 
+  for (int i = 0; i < Global_Photons.NEntries(); i++) 
   {
 
-    Photon *Current_Photon = All_Photons.Kth(i);
+    Photon *Current_Photon = Global_Photons.Kth(i);
 
     float r_Power = Current_Photon->GetPower().R();
     float g_Power = Current_Photon->GetPower().G();
@@ -429,7 +428,7 @@ void GLUTRedraw(void)
   if (show_photon_ray_paths) {
     glDisable(GL_LIGHTING);
     glColor3d(0.0, 1.0, 0.0);
-    glLineWidth(3);
+    glLineWidth(1);
     DrawPhotonRayPaths(scene);
     glLineWidth(1);
   }
@@ -801,7 +800,7 @@ ParseArgs(int argc, char **argv)
         print_verbose = 1; 
       }
       else if (!strcmp(*argv, "-photonCount")) {
-        argc--; argv++; photon_count = atoi(*argv); 
+        argc--; argv++; global_photon_count = atoi(*argv); 
       }
       else if (!strcmp(*argv, "-showRayPaths")) {
         show_photon_ray_paths = 1; 
@@ -874,31 +873,50 @@ int main(int argc, char **argv)
     -- e.g., for spot lights (section 2.1.1 in Jensen01). */
 
     // Emit [ n = photon_count ] photons into the scene
-    R3Kdtree<Photon *> Photon_Map = EmitPhotons(scene, 
-                                                photon_count, 
-                                                &All_Photons);
+    R3Kdtree<Photon *> Global_Photon_Map = CreatePhotonMap(scene, 
+                                                           global_photon_count, 
+                                                           FALSE,
+                                                           &Global_Photons);
 
-    /* PHOTON SCATTERING: 
-    Trace photons via reflections and transmissions through the scene. 
-    At each ray-surface intersection, randomly generate a secondary ray along a direction 
-    of diffuse reflection, specular reflection, transmission, or absorption with probability 
-    proportional to kd, ks, kt, and (1 - kd+ks+kt), respectively (section 2.1.2 in Jensen01). */
+    // R3Kdtree<Photon *> Photon_Map = CreatePhotonMap(scene, 
+    //                                                 global_photon_count, 
+    //                                                 FALSE,
+    //                                                 &Global_Photons);
 
+    /* MULTIPLE PHOTON MAPS: 
+    Implement separate photon maps for global (L{S|D}*D) and caustic (LS+D) ray paths 
+    (section 2.1.5 in Jensen01). */
+
+    // R3Kdtree<Photon *> Global_Photon_Map = CreatePhotonMap(scene, 
+    //                                                        global_photon_count, 
+    //                                                        TRUE,
+    //                                                        &Global_Photons);
+
+    R3Kdtree<Photon *> Caustic_Photon_Map = CreatePhotonMap(scene, 
+                                                            caustic_photon_count, 
+                                                            TRUE,
+                                                            &Caustic_Photons);
 
     //Render image calling method in render.cpp
     R2Image *image = RenderImagePhotonMapping(scene, 
                                               render_image_width, 
                                               render_image_height, 
-                                              photon_count,
-                                              Photon_Map);
+                                              global_photon_count,
+                                              Global_Photon_Map,
+                                              Caustic_Photon_Map);
 
-    // if (!image) exit(-1);
+    //R2Image *image = RenderImageRaytracing(scene, render_image_width, render_image_height, print_verbose);
 
-    // // Write image
-    // if (!WriteImage(image, output_image_name)) exit(-1);
+    if (!image) exit(-1);
+
+    //Write image
+    if (!WriteImage(image, output_image_name)) exit(-1);
+
+    cout << "NUMBER OF PHOTONS: " << Global_Photons.NEntries() << endl;
+    cout << "NUMBER OF PHOTONS: " << Caustic_Photons.NEntries() << endl;
 
     // Run GLUT interface
-    GLUTMainLoop();
+    //GLUTMainLoop();
 
     // Delete viewer (doesn't ever get here)
     delete viewer;
