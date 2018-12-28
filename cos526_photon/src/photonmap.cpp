@@ -179,6 +179,9 @@ DrawLights(R3Scene *scene)
     }
     else {
       fprintf(stderr, "Unrecognized light type: %d\n", light->ClassID());
+      fprintf(stderr, "Area light type: %d\n", R3AreaLight::CLASS_ID());
+      fprintf(stderr, "Point light type: %d\n", R3PointLight::CLASS_ID());
+      fprintf(stderr, "Spot light type: %d\n", R3SpotLight::CLASS_ID());
       return;
     }
   }
@@ -276,21 +279,10 @@ DrawPhotonRayPaths(R3Scene *scene)
   for (int i = 0; i < Global_Photons.NEntries(); i++) 
   {
 
-    // if (i >= global_photon_count) 
-    // {
-    //   glColor3d(1.0, 0.0, 1.0);
-    //   //cout << "HELLO: " << i << endl;
-    // }
+    if (i == 0) { glColor3d(1.0, 0.0, 1.0); } 
+    else { glColor3d(0.0, 1.0, 0.0); } 
 
     Photon *Current_Photon = Global_Photons.Kth(i); 
-    // cout << ">>>>>>>i: " << i << endl;
-    // cout << "Position X: " << Current_Photon->GetPosition().X() << endl;
-    // cout << "Position Y: " << Current_Photon->GetPosition().Y() << endl;
-    // cout << "Position Z: " << Current_Photon->GetPosition().Z() << endl;
-    // cout << "Start X: " << Current_Photon->GetDirection().Start().X() << endl;
-    // cout << "Start Y: " << Current_Photon->GetDirection().Start().Y() << endl;
-    // cout << "Start Z: " << Current_Photon->GetDirection().Start().Z() << endl;
-    // cout << ": " << (All_Photons.Kth(0)->GetDirection().Start().X() == All_Photons.Kth(4)->GetDirection().Start().X()) << endl;
 
     float origin_X = Current_Photon->GetDirection().Start().X();
     float origin_Y = Current_Photon->GetDirection().Start().Y();
@@ -334,7 +326,8 @@ DrawPhotons(R3Scene *scene)
   RNScalar t;
 
   // Ray intersection variables
-  double radius = 0.0025 * scene->BBox().DiagonalRadius();
+  //double radius = 0.0025 * scene->BBox().DiagonalRadius();
+  double radius = 0.01 * scene->BBox().DiagonalRadius();
   //double radius = 0.03 * scene->BBox().DiagonalRadius();
 
   for (int i = 0; i < Global_Photons.NEntries(); i++) 
@@ -799,8 +792,11 @@ ParseArgs(int argc, char **argv)
       if (!strcmp(*argv, "-v")) {
         print_verbose = 1; 
       }
-      else if (!strcmp(*argv, "-photonCount")) {
+      else if (!strcmp(*argv, "-globalPhotonCount")) {
         argc--; argv++; global_photon_count = atoi(*argv); 
+      }
+      else if (!strcmp(*argv, "-causticPhotonCount")) {
+        argc--; argv++; caustic_photon_count = atoi(*argv); 
       }
       else if (!strcmp(*argv, "-showRayPaths")) {
         show_photon_ray_paths = 1; 
@@ -877,6 +873,8 @@ int main(int argc, char **argv)
                                                            global_photon_count, 
                                                            FALSE,
                                                            &Global_Photons);
+
+
 
     // R3Kdtree<Photon *> Photon_Map = CreatePhotonMap(scene, 
     //                                                 global_photon_count, 

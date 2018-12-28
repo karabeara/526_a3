@@ -29,7 +29,7 @@ RN_CLASS_TYPE_DEFINITIONS(R3DirectionalLight);
 int 
 R3InitDirectionalLight()
 {
-    /* Return success */
+    /* Return success */ 
     return TRUE;
 }
 
@@ -174,6 +174,16 @@ Reflection(const R3Brdf& brdf, const R3Point& eye,
 }
 
 
+// Get ray from light source to given point
+const R3Ray R3DirectionalLight::
+LightToPointRay(R3Point point) const
+{
+    //R3Ray opposite_ray = R3Ray(point, -Direction());
+    R3Point far_distant_point = point - Direction() * 1000.0;
+    return R3Ray(far_distant_point, Direction());
+}
+
+
 // Give a randomly sampled array from a point light
 const R3Ray R3DirectionalLight::
 RandomlySampledRay(void) const
@@ -185,6 +195,15 @@ RandomlySampledRay(void) const
 
     return ray;
 }
+
+
+
+const RNRgb R3DirectionalLight::
+PowerGivenDistance(R3Point reference_point, R3Vector normal) const
+{
+    return Color();
+}
+
 
 
 void R3DirectionalLight::

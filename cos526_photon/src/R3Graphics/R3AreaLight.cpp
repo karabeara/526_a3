@@ -279,36 +279,92 @@ Reflection(const R3Brdf& brdf, const R3Point& eye,
     return diffuse + specular;
 }
 
+
+// Get ray from light source to given point
+const R3Ray R3AreaLight::
+LightToPointRay(R3Point point) const
+{
+    return R3Ray(Position(), point);
+}
+
+
+
+
 // Give a randomly sampled array from a point light
 const R3Ray R3AreaLight::
 RandomlySampledRay(void) const
 {
-    R3Point pt_1 = Position();
+    // Get circle axes
+    R3Vector direction = circle.Normal();
+    RNDimension dim = direction.MinDimension();
+    R3Vector axis1 = direction % R3xyz_triad[dim];
+    axis1.Normalize();
+    R3Vector axis2 = direction % axis1;
+    axis2.Normalize();
 
-    // Generating Randomly uniformly-distributed point of the surface of a sphere
-    // Code referenced from: http://corysimon.github.io/articles/uniformdistn-on-sphere/
-    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-    std::mt19937 generator (seed);
-    std::uniform_real_distribution<double> uniform01(0.0, 1.0);
+    // Sample point uniformly from circular light source
+    RNScalar r1 = RNRandomScalar() * 2 - 1;
+    RNScalar r2 = RNRandomScalar() * 2 - 1; 
+    
+    while (r1*r1 + r2*r2 > 1) {
+        r1 = RNRandomScalar() * 2 - 1;
+        r2 = RNRandomScalar() * 2 - 1;
+    }
 
-    double theta = 2 * M_PI * uniform01(generator);
-    double phi = acos(1 - 2 * uniform01(generator));
-    double x = sin(phi) * cos(theta);
-    double y = sin(phi) * sin(theta);
-    double z = cos(phi);
+    R3Point sample_point = Position();
+    sample_point += r1 * Radius() * axis1;
+    sample_point += r2 * Radius() * axis2;
 
-    cout << "Phi: " << phi << endl;
-    cout << "Theta: " << theta << endl;
-    cout << "x: " << x << endl;
-    cout << "y: " << y << endl;
-    cout << "z: " << z << endl;
-
-    R3Point pt_2 = R3Point(x, y, z);
-
-    R3Ray ray = R3Ray(pt_1, pt_2);
+    R3Ray ray = R3Ray(sample_point, Direction());
 
     return ray;
 }
+
+
+const RNRgb R3AreaLight::
+PowerGivenDistance(R3Point reference_point, R3Vector normal) const
+{
+    RNRgb resulting_power; 
+
+    double x = reference_point.X() - Position().X();
+    double y = reference_point.Y() - Position().Y();
+    double z = reference_point.Z() - Position().Z();
+
+    // Distance between the two points
+    double d = sqrt( x*x + y*y + z*z );
+
+    // Difference in angle between the light direction and the direction to the surface
+    R3Vector A = normal; 
+    R3Vector B = Direction();
+
+    double Ax = A.X(); 
+    double Ay = A.Y();
+    double Az = A.Z();
+    double Bx = B.X(); 
+    double By = B.Y();
+    double Bz = B.Z();
+
+    double A_dot_B = A.Dot(B);
+    double magnitude_A = sqrt( Ax*Ax + Ay*Ay + Az*Az );
+    double magnitude_B = sqrt( Bx*Bx + By*By + Bz*Bz );
+
+    // angle = inverse cosine (arccos) of dot product divided by multiplied magnitudes
+    double _theta_ = acos( A_dot_B / ( magnitude_A * magnitude_B ) ); // angle between surface normal and direction of light
+    
+    // Plus PI/2, then negate that result 
+    double theta  = -( _theta_ + ( M_PI / 2 ) ); // angle between surface and direction of light
+
+    double ca = ConstantAttenuation();
+    double la = LinearAttenuation();
+    double qa = QuadraticAttenuation();
+
+    // Calculate: (r,g,b) * 1.0/ (ca + la*d + qa*d*d)
+    resulting_power = Color() * ( cos(theta) / ( ca + (la*d) + (qa*d*d) ) );
+
+    return resulting_power;
+}
+
+
 
 void R3AreaLight::
 Draw(int i) const

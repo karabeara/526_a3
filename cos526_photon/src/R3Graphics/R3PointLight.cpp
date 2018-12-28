@@ -255,6 +255,14 @@ Reflection(const R3Brdf& brdf, const R3Point& eye,
 }
 
 
+// Get ray from light source to given point
+const R3Ray R3PointLight::
+LightToPointRay(R3Point point) const
+{
+    return R3Ray(Position(), point);;
+}
+
+
 // Give a randomly sampled array from a point light
 const R3Ray R3PointLight::
 RandomlySampledRay(void) const
@@ -273,14 +281,6 @@ RandomlySampledRay(void) const
     double y = sin(phi) * sin(theta);
     double z = cos(phi);
 
-    double dist = sqrt( x*x + y*y + z*z);
-
-    // cout << "x: " << x << endl;
-    // cout << "y: " << y << endl;
-    // cout << "z: " << z << endl;
-    // cout << "dist: " << dist << endl;
-    // cout << " " << endl;
-
     R3Point pt_2 = R3Point(x + pt_1.X(), 
                            y + pt_1.Y(), 
                            z + pt_1.Z());
@@ -288,6 +288,30 @@ RandomlySampledRay(void) const
     R3Ray ray = R3Ray(pt_1, pt_2);
 
     return ray;
+}
+
+
+// Give the power of a surface photon given the distance d from the light source
+const RNRgb R3PointLight::
+PowerGivenDistance(R3Point reference_point, R3Vector normal) const
+{
+    RNRgb resulting_power; 
+
+    double x = reference_point.X() - Position().X();
+    double y = reference_point.Y() - Position().Y();
+    double z = reference_point.Z() - Position().Z();
+
+    // Distance between the two points
+    double d = sqrt( x*x + y*y + z*z );
+
+    double ca = ConstantAttenuation();
+    double la = LinearAttenuation();
+    double qa = QuadraticAttenuation();
+
+    // Calculate: (r,g,b) * 1.0/ (ca + la*d + qa*d*d)
+    resulting_power = Color() * ( 1.0 / ( ca + (la*d) + (qa*d*d) ) );
+
+    return resulting_power;
 }
 
 

@@ -13,28 +13,28 @@ void R3StopAreaLight();
 
 class R3AreaLight : public R3Light {
     public:
-        // Constructor functions
+    // Constructor functions
 	R3AreaLight(void);
-        R3AreaLight(const R3AreaLight& light);
-        R3AreaLight(const R3Point& position, RNLength radius, const R3Vector& direction, const RNRgb& color, 
-            RNScalar intensity = 1.0, RNBoolean active = TRUE,
-            RNScalar ca = 0, RNScalar la = 0, RNScalar qa = 1);
+    R3AreaLight(const R3AreaLight& light);
+    R3AreaLight(const R3Point& position, RNLength radius, const R3Vector& direction, const RNRgb& color, 
+                RNScalar intensity = 1.0, RNBoolean active = TRUE,
+                RNScalar ca = 0, RNScalar la = 0, RNScalar qa = 1);
 
 	// Property functions/operators
   	const R3Point& Position(void) const;
   	const R3Vector& Direction(void) const;
-        const RNLength Radius(void) const;
-        const RNScalar ConstantAttenuation(void) const;
-        const RNScalar LinearAttenuation(void) const;
-        const RNScalar QuadraticAttenuation(void) const;
+    const RNLength Radius(void) const;
+    const RNScalar ConstantAttenuation(void) const;
+    const RNScalar LinearAttenuation(void) const;
+    const RNScalar QuadraticAttenuation(void) const;
 
 	// Manipulation functions/operations
   	virtual void SetPosition(const R3Point& position);
   	virtual void SetDirection(const R3Vector& direction);
   	virtual void SetRadius(RNLength radius);
-        virtual void SetConstantAttenuation(RNScalar ca); 
-        virtual void SetLinearAttenuation(RNScalar la); 
-        virtual void SetQuadraticAttenuation(RNScalar qa); 
+    virtual void SetConstantAttenuation(RNScalar ca); 
+    virtual void SetLinearAttenuation(RNScalar la); 
+    virtual void SetQuadraticAttenuation(RNScalar qa); 
 
 	// Reflection evaluation functions
 	virtual RNRgb Reflection(const R3Brdf& brdf, const R3Point& eye, 
@@ -44,19 +44,26 @@ class R3AreaLight : public R3Light {
 	virtual RNRgb SpecularReflection(const R3Brdf& brdf, const R3Point& eye, 
 	    const R3Point& point, const R3Vector& normal) const;
 
-	// Draw functions/operations
-    virtual void Draw(int i) const;
+    // Get ray from light source to given point
+    const R3Ray LightToPointRay(R3Point point) const;
 
+    // Give a randomly sampled ray from this light
     const R3Ray RandomlySampledRay(void) const;
+
+    // Give the power of a surface photon given the distance from the light source
+    const RNRgb PowerGivenDistance(R3Point reference_point, R3Vector normal) const;
+
+    // Draw functions/operations
+    virtual void Draw(int i) const;
 
 	// Class type definitions
 	RN_CLASS_TYPE_DECLARATIONS(R3AreaLight);
 
     private:
 	R3Circle circle;
-        RNScalar constant_attenuation;
-        RNScalar linear_attenuation;
-        RNScalar quadratic_attenuation;
+    RNScalar constant_attenuation;
+    RNScalar linear_attenuation;
+    RNScalar quadratic_attenuation;
 };
 
 

@@ -40,11 +40,11 @@ class R3Box : public R3Solid {
 	const R3Box Octant(RNDirection xdir, RNDirection ydir, RNDirection zdir) const;
 	const RNBoolean IsEmpty(void) const;
 	const RNBoolean IsFinite(void) const;
-        const int NDimensions(void) const;
-        const int NDimensionsAlongSide(RNDirection dir, RNDimension dim) const;
+    const int NDimensions(void) const;
+    const int NDimensionsAlongSide(RNDirection dir, RNDimension dim) const;
 	const RNBoolean IsSideNull(RNDirection dir, RNDimension dim) const;
 	const RNBoolean IsSideLinear(RNDirection dir, RNDimension dim) const;	
-        const int NDimensionsAlongAxis(const RNAxis axis) const;
+    const int NDimensionsAlongAxis(const RNAxis axis) const;
 	const RNBoolean IsAxisNull(const RNAxis axis) const;
 	const RNLength XLength(void) const;
 	const RNLength YLength(void) const;

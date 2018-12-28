@@ -14,35 +14,42 @@ void R3StopDirectionalLight();
 class R3DirectionalLight : public R3Light {
     public:
         // Constructor functions
-	R3DirectionalLight(void);
-    R3DirectionalLight(const R3DirectionalLight& light);
-    R3DirectionalLight(const R3Vector& direction, const RNRgb& color, 
+	    R3DirectionalLight(void);
+        R3DirectionalLight(const R3DirectionalLight& light);
+        R3DirectionalLight(const R3Vector& direction, const RNRgb& color, 
                        RNScalar intensity = 1.0, RNBoolean active = TRUE);
 
-	// Property functions/operators
-  	const R3Vector& Direction(void) const;
+	    // Property functions/operators
+  	    const R3Vector& Direction(void) const;
 
-	// Manipulation functions/operations
-  	virtual void SetDirection(const R3Vector& direction);
+	    // Manipulation functions/operations
+  	    virtual void SetDirection(const R3Vector& direction);
 
-	// Reflection evaluation functions
-	virtual RNRgb Reflection(const R3Brdf& brdf, const R3Point& eye, 
-	                         const R3Point& point, const R3Vector& normal) const;
-	virtual RNRgb DiffuseReflection(const R3Brdf& brdf, 
-	                                const R3Point& point, const R3Vector& normal) const;
-	virtual RNRgb SpecularReflection(const R3Brdf& brdf, const R3Point& eye, 
-	                                 const R3Point& point, const R3Vector& normal) const;
+	    // Reflection evaluation functions
+	    virtual RNRgb Reflection(const R3Brdf& brdf, const R3Point& eye, 
+	                             const R3Point& point, const R3Vector& normal) const;
+	    virtual RNRgb DiffuseReflection(const R3Brdf& brdf, 
+	                                    const R3Point& point, const R3Vector& normal) const;
+	    virtual RNRgb SpecularReflection(const R3Brdf& brdf, const R3Point& eye, 
+	                                     const R3Point& point, const R3Vector& normal) const;
 
-	// Draw functions/operations
-    virtual void Draw(int i) const;
+        // Get ray from light source to given point
+        const R3Ray LightToPointRay(R3Point point) const;
 
-    const R3Ray RandomlySampledRay(void) const;
+        // Give a randomly sampled array from this light
+        const R3Ray RandomlySampledRay(void) const;
 
-	// Class type definitions
-	RN_CLASS_TYPE_DECLARATIONS(R3DirectionalLight);
+        // Give the power of a surface photon given the distance from the light source
+        const RNRgb PowerGivenDistance(R3Point reference_point, R3Vector normal) const;
+
+        // Draw functions/operations
+        virtual void Draw(int i) const;
+
+	   // Class type definitions
+	    RN_CLASS_TYPE_DECLARATIONS(R3DirectionalLight);
 
     private:
-	R3Vector direction;
+	   R3Vector direction;
 };
 
 

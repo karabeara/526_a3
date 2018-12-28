@@ -42,7 +42,7 @@ class R3Point {
 	void SetY(RNCoord y);
 	void SetZ(RNCoord z);
 	void SetCoord(RNDimension dim, RNCoord coord);
-        void Translate(const R3Vector& vector);
+    void Translate(const R3Vector& vector);
 	void Project(const R3Line& line);
 	void Project(const R3Plane& plane);
 	void Mirror(const R3Plane& plane);
@@ -58,8 +58,8 @@ class R3Point {
 	void InverseTransform(const R3Transformation& transformation);
 	void Reset(RNCoord x, RNCoord y, RNCoord z);
 
-        // Draw functions/operators
-        void Draw(void) const;
+    // Draw functions/operators
+    void Draw(void) const;
 
 	// Assignment operators
 	R3Point& operator=(const R3Point& point);

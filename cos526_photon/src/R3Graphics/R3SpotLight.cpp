@@ -119,36 +119,65 @@ IntensityAtPoint(const R3Point& point) const
 }
 
 
-// // Give a randomly sampled array from a point light
-// R3Ray R3SpotLight::
-// RandomlySampledRay(void) const
-// {
-//     R3Point pt_1 = Position();
+// Get ray from light source to given point
+const R3Ray R3SpotLight::
+LightToPointRay(R3Point point) const
+{
+    return R3Ray(Position(), point);
+}
 
-//     // Generating Randomly uniformly-distributed point of the surface of a sphere
-//     // Code referenced from: http://corysimon.github.io/articles/uniformdistn-on-sphere/
-//     unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-//     std::mt19937 generator (seed);
-//     std::uniform_real_distribution<double> uniform01(0.0, 1.0);
 
-//     double theta = 2 * M_PI * uniform01(generator);
-//     double phi = acos(1 - 2 * uniform01(generator));
-//     double x = sin(phi) * cos(theta);
-//     double y = sin(phi) * sin(theta);
-//     double z = cos(phi);
+// Give a randomly sampled array from a point light
+const R3Ray R3SpotLight::
+RandomlySampledRay(void) const
+{
+    R3Point pt_1 = Position();
 
-//     cout << "Phi: " << phi << endl;
-//     cout << "Theta: " << theta << endl;
-//     cout << "x: " << x << endl;
-//     cout << "y: " << y << endl;
-//     cout << "z: " << z << endl;
+    // Generating Randomly uniformly-distributed point of the surface of a sphere
+    // Code referenced from: http://corysimon.github.io/articles/uniformdistn-on-sphere/
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    std::mt19937 generator (seed);
+    std::uniform_real_distribution<double> uniform01(0, 1.0);
 
-//     R3Point pt_2 = R3Point(x, y, z);
+    double theta = 2 * M_PI * uniform01(generator);
+    double phi = acos(1 - 2 * uniform01(generator));
+    double x = sin(phi) * cos(theta);
+    double y = sin(phi) * sin(theta);
+    double z = cos(phi);
 
-//     R3Ray ray = R3Ray(pt_1, pt_2);
+    R3Point pt_2 = R3Point(x + pt_1.X(), 
+                           y + pt_1.Y(), 
+                           z + pt_1.Z());
 
-//     return ray;
-// }
+    R3Ray ray = R3Ray(pt_1, pt_2);
+
+    return ray;
+}
+
+
+const RNRgb R3SpotLight::
+PowerGivenDistance(R3Point reference_point, R3Vector normal) const
+{
+    RNRgb resulting_power; 
+
+    double x = reference_point.X() - Position().X();
+    double y = reference_point.Y() - Position().Y();
+    double z = reference_point.Z() - Position().Z();
+
+    // Distance between the two points
+    double d = sqrt( x*x + y*y + z*z );
+
+    double ca = ConstantAttenuation();
+    double la = LinearAttenuation();
+    double qa = QuadraticAttenuation();
+
+    // Calculate: (r,g,b) * 1.0/ (ca + la*d + qa*d*d)
+    resulting_power = Color() * ( 1.0 / ( ca + (la*d) + (qa*d*d) ) );
+
+    return resulting_power;
+}
+
+
 
 
 void R3SpotLight::

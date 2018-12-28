@@ -15,13 +15,13 @@ class R3Circle : public R3Surface {
     public:
         // Constructor functions
 	R3Circle(void);
-        R3Circle(const R3Circle& circle);
-        R3Circle(const R3Point& center, RNLength radius, const R3Vector& normal);
-        R3Circle(const R3Point& p1, const R3Point& p2, const R3Point& p3);
+    R3Circle(const R3Circle& circle);
+    R3Circle(const R3Point& center, RNLength radius, const R3Vector& normal);
+    R3Circle(const R3Point& p1, const R3Point& p2, const R3Point& p3);
 
-        // Circle property functions/operators
-        const R3Point& Center(void) const;
-        const RNLength Radius(void) const;
+    // Circle property functions/operators
+    const R3Point& Center(void) const;
+    const RNLength Radius(void) const;
 	const R3Plane& Plane(void) const;
 	const R3Vector& Normal(void) const;
 	const RNBoolean IsEmpty(void) const;
@@ -32,7 +32,7 @@ class R3Circle : public R3Surface {
 	virtual const RNBoolean IsLinear(void) const;
 	virtual const RNBoolean IsPlanar(void) const;
 	virtual const RNBoolean IsConvex(void) const;
-        virtual const RNInterval NFacets(void) const;
+    virtual const RNInterval NFacets(void) const;
 	virtual const RNLength Length(void) const;
 	virtual const RNArea Area(void) const;
 	virtual const R3Point Centroid(void) const;

@@ -145,18 +145,27 @@ SetColor(const RNRgb& color)
     this->color = color;
 }
 
+// Get ray from light source to given point
+const R3Ray R3Light::
+LightToPointRay(R3Point point) const 
+{
+  return R3Ray( R3Point(0, 0, 0), R3Point(1, 1, 1) );
+}
+
 
 const R3Ray R3Light::
-RandomlySampledRay(void) const
+RandomlySampledRay(void) const 
 {
-    R3Point pt_1 = R3Point(8,8,8);
-    R3Point pt_2 = R3Point(1,1,1);
-
-    cout << "z: " << 19999999 << endl;
-
-    R3Ray ray2 = R3Ray(pt_1, pt_2);
-
-    //R3Ray ray = R3Ray(R3Point(4,4,4), R3Point(1,2,3));
-
-    return ray2;
+  return R3Ray( R3Point(0, 0, 0), R3Point(1, 1, 1) );
 }
+
+
+// Give the power of a surface photon given the distance d from the light source
+const RNRgb R3Light::
+PowerGivenDistance(R3Point reference_point, R3Vector normal) const
+{
+  cout << "LIGHT default" << endl;
+  return RNRgb(0, 0, 0);
+}
+
+

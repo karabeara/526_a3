@@ -34,10 +34,17 @@ class R3SpotLight : public R3PointLight {
 	// Evaluation functions
 	virtual RNScalar IntensityAtPoint(const R3Point& point) const;
 
+  // Get ray from light source to given point
+  const R3Ray LightToPointRay(R3Point point) const;
+
+  // Give a randomly sampled array from this light
+  const R3Ray RandomlySampledRay(void) const;
+
+  // Give the power of a surface photon given the distance from the light source
+  const RNRgb PowerGivenDistance(R3Point reference_point, R3Vector normal) const;
+
 	// Draw functions/operations
   virtual void Draw(int i) const;
-
-  //virtual R3Ray RandomlySampledRay(void) const;
 
 	// Class type definitions
 	RN_CLASS_TYPE_DECLARATIONS(R3SpotLight);
