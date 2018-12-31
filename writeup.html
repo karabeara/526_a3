@@ -1,0 +1,157 @@
+<head>
+  <title>COS 526 Assignment 3 Writeup</title>
+  <style type="text/css">
+  body {
+  	font-family: SEATTLE, Times, serif;
+    src: url("./SEATTLE-Regular.ttf") format("truetype"); 
+    color: black;
+    background-color: rgb(230,230,230) }
+    a 	{ color: #677a93;
+    	  text-decoration: none }
+    h1	{ font-size: 60px; 
+    	  margin-bottom:10px;}
+    body, html {
+		margin-left:2%;
+		margin-right:2%;
+		margin-bottom:1%;
+		margin-top:0.5%; }
+  </style>
+
+  <!-- <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css"> -->
+</head>
+
+<body>
+    <script src="js/writeup.js"> </script>
+    <div class="main_div">
+
+        <h1 style="font-size: 80px;">PHOTON MAPPING</h1>
+        <h2>COS 526, Fall 2018<div>Assignment 3</div></h2>
+        <h2>Kara Bressler, karab</h2>
+
+ Photon mapping is an algorithm for synthesis of global illumination, 
+
+ This project is written in C++ with <a href='http://www.cs.princeton.edu/courses/archive/fall18/cos526/a3/cos526_photon.zip'>template code</a>, courtesy of Tom Funkhouser. 
+
+ <ol>
+ 	<li>Photon Tracing</li>
+ 	<li>Rendering</li>
+ 	<li>Visualization</li>
+ </ol>
+
+ <br><br>
+
+ User provided input should be made in the first cell of the notebook under the comment "USER INPUT."
+
+ <br><br>
+
+</ul></div>
+
+<h1>Photon Tracing</h1>
+
+<p><hr><p><a name='Photon Emission'></a><h2>PHOTON EMISSION</h2><p><hr><p>
+
+TASK: Implement code to emit photons in random directions from every light source in a scene. The total number of photons emitted for each light source should be proportional to the power of the light source (so that each photon carries approximately equal power), and the distribution of photons should be proportional to the power in each direction - e.g., for spot lights (section 2.1.1 in <a href='http://www.cs.princeton.edu/courses/archive/fall18/cos526/papers/jensen01.pdf'>Jensen, 2001</a>).
+
+<br>
+<br>
+
+And from the top and the bottom: 
+
+<br>
+
+<a href='Results/top.png'><img src='Results/top.png' width=16%;></a>
+
+<a href='Results/bottom.png'><img src='Results/bottom.png' width=16%;></a>
+
+
+
+
+
+<p><hr><p><a name='Photon Scattering'></a><h2>PHOTON SCATTERING</h2><p><hr><p>
+
+TASK: Trace photons via reflections and transmissions through the scene. At each ray-surface intersection, randomly generate a secondary ray along a direction of diffuse reflection, specular reflection, transmission, or absorption with probability proportional to kd, ks, kt, and (1 - kd+ks+kt), respectively (section 2.1.2 in <a href='http://www.cs.princeton.edu/courses/archive/fall18/cos526/papers/jensen01.pdf'>Jensen, 2001</a>).
+
+<br>
+<br>
+
+
+
+
+
+<p><hr><p><a name='Russian Roulette'></a><h2>RUSSIAN ROULETTE</h2><p><hr><p>
+
+TASK:
+
+
+
+<p><hr><p><a name='Photon Storage'></a><h2>PHOTON STORAGE</h2><p><hr><p>
+
+Photon-surface intersections are stored in a kd-tree. For each photon we retain the position, incident ray/direction, and power in the following data structure: 
+
+<div style='margin-left: 40px;'>struct Photon {</div>
+<!-- <div style='margin-left: 40px;'>{</div> -->
+<div style='margin-left: 70px;'>     R3Point position;</div>
+<div style='margin-left: 70px;'>     R3Ray direction;</div>
+<div style='margin-left: 70px;'>     RNRgb power;</div>
+<div style='margin-left: 40px;'>};</div>
+
+<br>
+We use the R3Kdtree class in R3Shapes to implement our kd-tree. This provides a fast look-up for the n closest photons in the photon map by using R3Kdtree's FindClosest() method. See Section 2.1.3 in <a href='http://www.cs.princeton.edu/courses/archive/fall18/cos526/papers/jensen01.pdf'>Jensen, 2001</a> for more details about photon storage. 
+
+
+<p><hr><p><a name='BRDF Importance Sampling'></a><h2>BRDF IMPORTANCE SAMPLING</h2><p><hr><p>
+
+TASK:
+
+
+<p><hr><p><a name='Multiple Photon Maps'></a><h2>MULTIPLE PHOTON MAPS</h2><p><hr><p>
+
+TASK: Implement separate photon maps for global (L{S|D}*D) and caustic (LS+D) ray paths (section 2.1.5 in <a href='http://www.cs.princeton.edu/courses/archive/fall18/cos526/papers/jensen01.pdf'>Jensen, 2001</a>).
+
+
+<br>
+<br>
+
+
+
+
+
+
+
+
+
+
+
+
+<p><hr><p><a name='Resources'></a><h2>RESOURCES</h2><p><hr><p>
+Here's a list of the resources consulted and used to complete this photon mapping assignment:
+
+<ul>
+
+<li> 
+	<a href='http://www.cs.princeton.edu/courses/archive/fall18/cos526/papers/jensen01.pdf'>A Practical Guide to Global Illumination using Photon Mapping, Henrik Wann Jensen, 2001.</a></li>
+</li>
+<li>
+	<a href='http://www.cs.princeton.edu/courses/archive/fall18/cos526/notes/cos526_f18_lecture17_photon.pdf'>CSE272: Advanced Image Synthesis lecture notes shown in COS 526, Henrik Wann Jensen, 2010.</a></li>
+</li>
+<li>
+	<a href='http://www.cs.princeton.edu/courses/archive/fall18/cos526/assignment3.html'>Previous COS 526 Student Write-ups, 2012-2014.</a></li>
+</li>
+
+
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+<br>
+  </div>
+</body>
+</html>

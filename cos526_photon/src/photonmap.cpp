@@ -918,7 +918,7 @@ int main(int argc, char **argv)
 
     // Delete viewer (doesn't ever get here)
     delete viewer;
-    //delete image;
+    delete image;
   }
 
   else {

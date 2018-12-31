@@ -2,6 +2,8 @@
 # Each of the spheres has the same reflectance properties, except the shininess
 # It is useful for testing illumination and specular reflections.
 
+#camera -4 -4 -4   1 1 1   0 1 0   0.329   0.01 100
+
 # One point light source in middle above scene
 point_light   1 1 1           0 0 1   0 0 1
 
