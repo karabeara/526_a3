@@ -46,6 +46,7 @@ int RAYS_PER_PIXEL = 32;
 - Choosing p in Russian Roulette, dependent on the surface?
 - What is means to send rays into the scene, how to do multiple?
 - How to Actually estimate radiance from the photon map.
+- Radiance estimates visualized directly vs. actually rendered for global illumination
 */
 
 /* 

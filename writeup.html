@@ -28,60 +28,43 @@
         <h2>COS 526, Fall 2018<div>Assignment 3</div></h2>
         <h2>Kara Bressler, karab</h2>
 
- Photon mapping is an algorithm for synthesis of global illumination, 
+Here, we implement photon mapping, an algorithm for synthesis of global illumination to mimic unbiased lighting.
 
- This project is written in C++ with <a href='http://www.cs.princeton.edu/courses/archive/fall18/cos526/a3/cos526_photon.zip'>template code</a>, courtesy of Tom Funkhouser. 
+This project is still in progress, and this writeup will be updated when complete. Let’s look at what we have so far, specifically looking at the two passes of photon mapping: photon tracing & rendering.
 
- <ol>
- 	<li>Photon Tracing</li>
- 	<li>Rendering</li>
- 	<li>Visualization</li>
- </ol>
-
- <br><br>
-
- User provided input should be made in the first cell of the notebook under the comment "USER INPUT."
-
- <br><br>
+ <br>
 
 </ul></div>
 
-<h1>Photon Tracing</h1>
+<h1>PHOTON TRACING</h1>
 
 <p><hr><p><a name='Photon Emission'></a><h2>PHOTON EMISSION</h2><p><hr><p>
 
-TASK: Implement code to emit photons in random directions from every light source in a scene. The total number of photons emitted for each light source should be proportional to the power of the light source (so that each photon carries approximately equal power), and the distribution of photons should be proportional to the power in each direction - e.g., for spot lights (section 2.1.1 in <a href='http://www.cs.princeton.edu/courses/archive/fall18/cos526/papers/jensen01.pdf'>Jensen, 2001</a>).
+For every light source in the scene, we emit photons in random directions. The total number of photons emitted from each light source are proportional to the power of the light source such that each photon carries approximately equal power. The assigned R3Light sources all are given the same value for Intensity, and thus we use the respective RNRgb value of the light to determine a light's intensity instead.
+
+<br><br>Currently we've implemented the point light correctly with proper calculations for uniformly randomly sampled rays from the light source and proper power fall-off. Area, directional, and spot lights are in the works so that the distribution of photons is proportional to the power in each direction. Each light source has a function returning a randomly sampled ray from the light source with the name RandomlySampledRay().
 
 <br>
 <br>
 
-And from the top and the bottom: 
+<a href='Results/point_light.png'><img src='Results/point_light.png' width=48%;></a>
 
 <br>
-
-<a href='Results/top.png'><img src='Results/top.png' width=16%;></a>
-
-<a href='Results/bottom.png'><img src='Results/bottom.png' width=16%;></a>
-
+<br>
 
 
 
 
 <p><hr><p><a name='Photon Scattering'></a><h2>PHOTON SCATTERING</h2><p><hr><p>
 
-TASK: Trace photons via reflections and transmissions through the scene. At each ray-surface intersection, randomly generate a secondary ray along a direction of diffuse reflection, specular reflection, transmission, or absorption with probability proportional to kd, ks, kt, and (1 - kd+ks+kt), respectively (section 2.1.2 in <a href='http://www.cs.princeton.edu/courses/archive/fall18/cos526/papers/jensen01.pdf'>Jensen, 2001</a>).
+During photon scattering, we trace photons via reflected and refracted rays through the scene. At each ray-surface intersection, we generate a secondary ray along a direction of diffuse reflection, specular reflection, transmission or absorption with probability proportional to kd, ks, kt, and (1 - kd+ks+kt) as calculated via BRDF importance sampling analysis.
+
+<br><br> In BRDF importance sampling, we calculate both diffuse and specular reflected rays according to the equations from <a href='http://www.cs.princeton.edu/courses/archive/fall18/cos526/papers/importance.pdf'>Jason Lawrence's paper</a>. The specularly reflected ray distribution is centered around the perfect specular reflective direction, and the diffusely reflected ray distribution is centered around the surface normal at the point of ray-surface intersection. Functions for BRDF importance sampling can be found in render.cpp.
+
+<br><br> For each surface intersection during photon tracing, we use Russian Roulette to terminate rays with probabilty p and multiply the power of the surviving rays by (1.0 / p). Right now, we've set p = 0.5 for all intersections, and we need to figure out if this probability should be calculated from the BRDF of the intersected surface.
 
 <br>
 <br>
-
-
-
-
-
-<p><hr><p><a name='Russian Roulette'></a><h2>RUSSIAN ROULETTE</h2><p><hr><p>
-
-TASK:
-
 
 
 <p><hr><p><a name='Photon Storage'></a><h2>PHOTON STORAGE</h2><p><hr><p>
@@ -98,15 +81,83 @@ Photon-surface intersections are stored in a kd-tree. For each photon we retain 
 <br>
 We use the R3Kdtree class in R3Shapes to implement our kd-tree. This provides a fast look-up for the n closest photons in the photon map by using R3Kdtree's FindClosest() method. See Section 2.1.3 in <a href='http://www.cs.princeton.edu/courses/archive/fall18/cos526/papers/jensen01.pdf'>Jensen, 2001</a> for more details about photon storage. 
 
-
-<p><hr><p><a name='BRDF Importance Sampling'></a><h2>BRDF IMPORTANCE SAMPLING</h2><p><hr><p>
-
-TASK:
+<br>
+<br>
 
 
 <p><hr><p><a name='Multiple Photon Maps'></a><h2>MULTIPLE PHOTON MAPS</h2><p><hr><p>
 
-TASK: Implement separate photon maps for global (L{S|D}*D) and caustic (LS+D) ray paths (section 2.1.5 in <a href='http://www.cs.princeton.edu/courses/archive/fall18/cos526/papers/jensen01.pdf'>Jensen, 2001</a>).
+We implement two separate photons maps for global (L{S|D}*D) and caustic (LS+D) ray paths. Global ray paths represent the traveling course of all photons emitted from the light sources, while caustic ray paths represent high energy photons from specular and transparent surfaces.
+
+<br><br> Right now, both photon maps are consulted independently at rendering time as we will look at next.
+
+<br><br> Here's a visualization of the placement of photons in the global and caustic photon maps respectively.
+
+<br>
+<br>
+
+<a href='Results/global_photons.png'><img src='Results/global_photons.png' width=48%;></a>
+<a href='Results/caustic_photons.png'><img src='Results/caustic_photons.png' width=48%;></a>
+
+
+<br>
+<br>
+
+
+<h1>RENDERING</h1>
+
+<p><hr><p><a name='Camera Raytracing'></a><h2>CAMERA RAYTRACING</h2><p><hr><p>
+
+We implemented a raytracer to deal with transmission of light. This raytracing shoots a ray from the camera's eye through each pixel and bounces a ray around the scene until a diffuse surface is found. From this diffuse surface, we then identify the resulting color by adding up contributions from direct ray-traced illumination, indirect illumination from the global photon map, and caustic illumination from the caustic photon map.
+
+<br><br>I am still a little unclear about rendering the calculate of indirection illumination from the radiance estimate, so I need to ask about that.
+
+<br>
+<br>
+
+<a href='Results/cornell165.jpg'><img src='Results/cornell165.jpg' width=200px;></a>
+
+
+<br>
+<br>
+
+<p><hr><p><a name='Radiance Estimation'></a><h2>RADIANCE ESTIMATION</h2><p><hr><p>
+
+From a look-up in the pre-computed photon map, radiance is calculated by summing up the N closest photons in the photon map, multiplying by the surface's BRDF, and dividing by the surface area from which the photons were sampled.
+
+<br>
+<br>
+
+<a href='Results/radiance_estimation.jpg'><img src='Results/radiance_estimation.jpg' width=200px;></a>
+
+<br><br>We implemented cone and Gaussian filtering methods for weighting photons during radiance estimation. Images to come.
+
+<br>
+<br>
+
+
+<p><hr><p><a name='Pixel integration'></a><h2>PIXEL INTEGRATION</h2><p><hr><p>
+
+For surfaces with a combination of diffuse, specular, transparent, and absorbing properties, we want to trace multiple rays per pixel (N) and average the radiance computed for all rays to estimate the radiance to store in the output image for each pixel. 
+
+<br><br>Below from left to right, we see an example with N=1, N=4, N=16, and N=32. 
+
+<br>
+<br>
+
+<a href='Results/stack_004_1_ray_per_pixel_HUGE.jpg'><img src='Results/stack_004_1_ray_per_pixel.jpg' width=24%;></a>
+<a href='Results/stack_004_4_rays_per_pixel.jpg'><img src='Results/stack_004_4_rays_per_pixel.jpg' width=24%;></a>
+<a href='Results/stack_004_16_rays_per_pixel.jpg'><img src='Results/stack_004_16_rays_per_pixel.jpg' width=24%;></a>
+<a href='Results/stack_004_32_rays_per_pixel_HUGE.jpg'><img src='Results/stack_004_32_rays_per_pixel.jpg' width=24%;></a>
+
+
+<br><br><br>And here we see an example with the raytraced version on the left and our rendition with N=32 on the right.
+
+<br>
+<br>
+
+<a href='Results/stilllife004_raytracer.jpg'><img src='Results/stilllife004_raytracer.jpg' width=48%;></a>
+<a href='Results/stilllife004_32_rays_per_pixel_40000global_10000caustic.jpg'><img src='Results/stilllife004_32_rays_per_pixel_40000global_10000caustic.jpg' width=48%;></a>
 
 
 <br>
@@ -123,25 +174,42 @@ TASK: Implement separate photon maps for global (L{S|D}*D) and caustic (LS+D) ra
 
 
 
-<p><hr><p><a name='Resources'></a><h2>RESOURCES</h2><p><hr><p>
+
+<br>
+<br>
+<br>
+<br>
+
+
+
+
+
+<a name='Resources'></a><h2>RESOURCES</h2><p><hr><p>
 Here's a list of the resources consulted and used to complete this photon mapping assignment:
 
 <ul>
 
 <li> 
-	<a href='http://www.cs.princeton.edu/courses/archive/fall18/cos526/papers/jensen01.pdf'>A Practical Guide to Global Illumination using Photon Mapping, Henrik Wann Jensen, 2001.</a></li>
+	<a href='http://www.cs.princeton.edu/courses/archive/fall18/cos526/papers/jensen01.pdf'>A Practical Guide to Global Illumination using Photon Mapping</a>, Henrik Wann Jensen, 2001.</li>
 </li>
 <li>
-	<a href='http://www.cs.princeton.edu/courses/archive/fall18/cos526/notes/cos526_f18_lecture17_photon.pdf'>CSE272: Advanced Image Synthesis lecture notes shown in COS 526, Henrik Wann Jensen, 2010.</a></li>
+	<a href='http://www.cs.princeton.edu/courses/archive/fall18/cos526/notes/cos526_f18_lecture17_photon.pdf'>CSE272: Advanced Image Synthesis lecture notes shown in COS 526</a>, Henrik Wann Jensen, 2010.</li>
 </li>
 <li>
-	<a href='http://www.cs.princeton.edu/courses/archive/fall18/cos526/assignment3.html'>Previous COS 526 Student Write-ups, 2012-2014.</a></li>
+	<a href='http://www.cs.princeton.edu/courses/archive/fall18/cos526/papers/importance.pdf'>Importance Sampling of the Phong Reflectance Model</a>, Jason Lawrence.</li>
+</li>
+<li>
+	<a href='http://www.cs.princeton.edu/courses/archive/fall18/cos526/assignment3.html'>Previous COS 526 Student Write-ups</a>, 2012-2014.</li>
+</li>
+<li>
+	<a href='http://www.cs.princeton.edu/courses/archive/fall18/cos526/a3/cos526_photon.zip'>C++ template code</a>, courtesy of Tom Funkhouser.</li>
 </li>
 
 
 </ul>
 
-
+<br>
+This write-up is written in the SEATTLE typeface as part of my <a href='https://karabeara.github.io/portfolio/pages/topo-typo.html'>Topography Typography project</a>.
 
 
 
