@@ -18,6 +18,7 @@ static int render_image_width = 64;
 static int render_image_height = 64;
 static int global_photon_count = 1000;
 static int caustic_photon_count = 1000;
+static int rays_per_pixel_count = 4;
 static int print_verbose = 0;
 
 // GLUT variables 
@@ -305,7 +306,6 @@ DrawPhotonRayPaths(R3Scene *scene)
     glEnd();
   }
 
-  //cout << "" << endl;
 }
 
 
@@ -861,34 +861,14 @@ int main(int argc, char **argv)
     viewer = new R3Viewer(scene->Viewer());
     if (!viewer) exit(-1);
 
-    /* PHOTON EMISSION: 
-    Implement code to emit photons in random directions from every light source in a scene. 
-    The total number of photons emitted for each light source should be proportional to 
-    the power of the light source (so that each photon carries approximately equal power), 
-    and the distribution of photons should be proportional to the power in each direction 
-    -- e.g., for spot lights (section 2.1.1 in Jensen01). */
-
-    // Emit [ n = photon_count ] photons into the scene
-    R3Kdtree<Photon *> Global_Photon_Map = CreatePhotonMap(scene, 
-                                                           global_photon_count, 
-                                                           FALSE,
-                                                           &Global_Photons);
-
-
-
-    // R3Kdtree<Photon *> Photon_Map = CreatePhotonMap(scene, 
-    //                                                 global_photon_count, 
-    //                                                 FALSE,
-    //                                                 &Global_Photons);
-
     /* MULTIPLE PHOTON MAPS: 
     Implement separate photon maps for global (L{S|D}*D) and caustic (LS+D) ray paths 
     (section 2.1.5 in Jensen01). */
 
-    // R3Kdtree<Photon *> Global_Photon_Map = CreatePhotonMap(scene, 
-    //                                                        global_photon_count, 
-    //                                                        TRUE,
-    //                                                        &Global_Photons);
+    R3Kdtree<Photon *> Global_Photon_Map = CreatePhotonMap(scene, 
+                                                           global_photon_count, 
+                                                           FALSE,
+                                                           &Global_Photons);
 
     R3Kdtree<Photon *> Caustic_Photon_Map = CreatePhotonMap(scene, 
                                                             caustic_photon_count, 
@@ -910,11 +890,11 @@ int main(int argc, char **argv)
     //Write image
     if (!WriteImage(image, output_image_name)) exit(-1);
 
-    cout << "NUMBER OF PHOTONS: " << Global_Photons.NEntries() << endl;
-    cout << "NUMBER OF PHOTONS: " << Caustic_Photons.NEntries() << endl;
+    cout << "NUMBER OF GLOBAL PHOTONS: " << Global_Photons.NEntries() << endl;
+    cout << "NUMBER OF CAUSTIC PHOTONS: " << Caustic_Photons.NEntries() << endl;
 
-    // Run GLUT interface
-    //GLUTMainLoop();
+    // Uncomment this line below for visualization
+    // GLUTMainLoop();
 
     // Delete viewer (doesn't ever get here)
     delete viewer;

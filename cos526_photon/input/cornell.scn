@@ -33,4 +33,4 @@ tri 0   0 1.0976 1.1184   0 1.0976 0   1.112 1.0976 0
 
 #glass sphere
 sphere 3   0.2 0.151 0.55   0.15  #glass ball
-sphere 4   0.8 0.151 0.75   0.15  #specular ball
+#sphere 4   0.8 0.151 0.75   0.15  #specular ball

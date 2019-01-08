@@ -30,17 +30,17 @@ using namespace std;
 // Handy global variables
 enum SurfaceInteraction { DIFFUSE_REFLECTED, SPECULAR_REFLECTED, TRANSMITTED, ABSORBED };
 
-int CLOSEST_PHOTONS_COUNT = 50;
+int CLOSEST_PHOTONS_COUNT = 500;
 
 int MAX_BOUNCE_COUNT = 100;
-float P_RUSSIAN_ROULETTE = 0.5;
+//float P_RUSSIAN_ROULETTE = 0.1;
 
 float MIN_DIST = 0;
 float GLOBAL_MAX_DIST = 0.5;
-float CAUSTIC_MAX_DIST = 0.5;
-float MIN_BLEEDING_DIST = 0.05;
+float CAUSTIC_MAX_DIST = 0.01;
+float MIN_BLEEDING_DIST = 0.1;
 
-int RAYS_PER_PIXEL = 32; 
+int RAYS_PER_PIXEL = 1; 
 
 /* TODO: 
 - Choosing p in Russian Roulette, dependent on the surface?
@@ -167,18 +167,26 @@ DistanceBetweenPoints(R3Point pt1, R3Point pt2)
 
 
 
-void 
+RNRgb
 ClampColorValue(RNRgb color) 
 {
+  RNRgb final_color = RNRgb(0, 0, 0);
+
   float r = min( color.R(), 1.0 );
   float g = min( color.G(), 1.0 );
   float b = min( color.B(), 1.0 );
 
-  color = RNRgb(r, g, b);
+  final_color = RNRgb(r, g, b);
+
+  return final_color;
+
+  // RNRgb final_color = color;
 
   // // Check that color channels are not maxed out, clamp if so
-  // clamping_factor = 1.0f / max(color.R(), max(color.G(), color.B()));
-  // if (clamping_factor < 1.0) { color *= clamping_factor; }
+  // float clamping_factor = 1.0f / max(color.R(), max(color.G(), color.B()));
+  // if (clamping_factor < 1.0) { final_color = color * clamping_factor; }
+
+  // return final_color;
 }
 
 
@@ -221,7 +229,7 @@ GetSurfaceInteraction( R3Scene *scene,
   double P_Diffuse      = max( d_r, max( d_g, d_b ) );
   double P_Specular     = max( s_r, max( s_g, s_b ) );
   double P_Transmission = max( t_r, max( t_g, t_b ) );
-  double P_Absorption   = 1 - ( P_Diffuse + P_Specular + P_Transmission );
+  //double P_Absorption   = 1 - ( P_Diffuse + P_Specular + P_Transmission );
 
   float p = GenerateRandomValue( 0, max( 1.0, P_Diffuse + P_Specular + P_Transmission ) );
 
@@ -244,7 +252,7 @@ GetSurfaceInteraction( R3Scene *scene,
 SurfaceInteraction
 GetSurfaceInteraction( R3Scene *scene, 
                        Photon* Old_Photon,
-                       RNRgb &new_photon_power)
+                       RNRgb &new_photon_power )
 {
   R3SceneNode *node;
   R3SceneElement *element;
@@ -288,7 +296,7 @@ GetSurfaceInteraction( R3Scene *scene,
   double P_Diffuse      = max( d_r * P_r, max( d_g * P_g, d_b * P_b ) ) / Max_Power_Incident_Ray;
   double P_Specular     = max( s_r * P_r, max( s_g * P_g, s_b * P_b ) ) / Max_Power_Incident_Ray;
   double P_Transmission = max( t_r * P_r, max( t_g * P_g, t_b * P_b ) ) / Max_Power_Incident_Ray;
-  double P_Absorption   = 1 - ( P_Diffuse + P_Specular + P_Transmission );
+  //double P_Absorption   = 1 - ( P_Diffuse + P_Specular + P_Transmission );
 
   float p = GenerateRandomValue( 0, max( 1.0, P_Diffuse + P_Specular + P_Transmission ) );
 
@@ -407,59 +415,57 @@ DiffuseReflectionBRDFImportanceSampling(const R3Brdf brdf,
 
 
 
-// // const R3Brdf& brdf, const R3Point& eye, 
-// //     const R3Point& point, const R3Vector& normal
-
 /* BRDF IMPORTANCE SAMPLING */
+/* This isn't doing anything rn */
 
-RNRgb 
-GetBRDF(R3Brdf brdf, R3Point origin, R3Point intersection_point, R3Vector normal) 
-{
-  RNRgb rgb;
+// RNRgb 
+// GetBRDF(R3Brdf brdf, R3Point origin, R3Point intersection_point, R3Vector normal) 
+// {
+//   RNRgb rgb;
 
-  float u1 = GenerateRandomValue(0, 1);
-  float u2 = GenerateRandomValue(0, 1);
+//   float u1 = GenerateRandomValue(0, 1);
+//   float u2 = GenerateRandomValue(0, 1);
 
-  // Get material properties
-  const RNRgb Dc = brdf.Diffuse();
-  const RNRgb Sc = brdf.Specular();
+//   // Get material properties
+//   const RNRgb Dc = brdf.Diffuse();
+//   const RNRgb Sc = brdf.Specular();
 
-  // alpha = the angle between the perfect specular reflective direction and the outgoing ray direction; 
-  // values larger than PI/2 are clamped to PI/2 in order to prevent any negative values of the cosine factor
+//   // alpha = the angle between the perfect specular reflective direction and the outgoing ray direction; 
+//   // values larger than PI/2 are clamped to PI/2 in order to prevent any negative values of the cosine factor
 
-  // k_d = the diffuse reflectivity (the fraction of the incoming energy that is reflected diffusely)
+//   // k_d = the diffuse reflectivity (the fraction of the incoming energy that is reflected diffusely)
 
-  // k_s = the specular reflectivity (the fraction of the perpendicularly incoming energy that is reflected specularly)
+//   // k_s = the specular reflectivity (the fraction of the perpendicularly incoming energy that is reflected specularly)
 
-  // n = the specular exponent (higher values give a sharper specular reflection)
-  RNScalar n = brdf.Shininess();
+//   // n = the specular exponent (higher values give a sharper specular reflection)
+//   RNScalar n = brdf.Shininess();
 
-  // x = point = the point of intersection with the current ray and the scene
+//   // x = point = the point of intersection with the current ray and the scene
 
-  // N = normal = the vector normal to the differential surface patch at the point of intersection
-  R3Vector N = R3Vector(normal); 
-  N.Normalize();
+//   // N = normal = the vector normal to the differential surface patch at the point of intersection
+//   R3Vector N = R3Vector(normal); 
+//   N.Normalize();
 
-  // w_o = a unit vector in the direction of the current outgoing ray of light 
-  // (recall that we are tracing paths backwards from the direction of light propagation: from the eye to the light sources)
+//   // w_o = a unit vector in the direction of the current outgoing ray of light 
+//   // (recall that we are tracing paths backwards from the direction of light propagation: from the eye to the light sources)
 
-  // f_r(x, theta_i, theta_o) = the Phong reflectance BRDF with diffuse / specular parameters given by the material of the intersected surface
+//   // f_r(x, theta_i, theta_o) = the Phong reflectance BRDF with diffuse / specular parameters given by the material of the intersected surface
 
-  // L = direction from light to point
-  R3Vector incident_vector = origin - intersection_point;
-  incident_vector.Normalize();
+//   // L = direction from light to point
+//   R3Vector incident_vector = origin - intersection_point;
+//   incident_vector.Normalize();
 
-  // theta_i = angle between normal and incident ray (ray from light to point)
-  RNScalar NL = N.Dot(incident_vector);
-  float theta_i = acos(NL);
+//   // theta_i = angle between normal and incident ray (ray from light to point)
+//   RNScalar NL = N.Dot(incident_vector);
+//   float theta_i = acos(NL);
 
-  // Calculate direction of reflected vector
-  // r = perfect specular reflective direction
-  R3Vector r = Reflect(incident_vector, normal);
-  R3Ray new_photon_ray = R3Ray(intersection_point - incident_vector * 0.00001, r);
+//   // Calculate direction of reflected vector
+//   // r = perfect specular reflective direction
+//   R3Vector r = Reflect(incident_vector, normal);
+//   R3Ray new_photon_ray = R3Ray(intersection_point - incident_vector * 0.00001, r);
 
-  return rgb;
-}
+//   return rgb;
+// }
 
 
 
@@ -502,50 +508,54 @@ ScatterPhoton(R3Scene *scene,
   (e.g., p=0.5) and multiply the power of surviving rays by 1.0/p (section 2.1.2 in Jensen01).
   See section 8.5 of these siggraph course notes for details. */
 
-  float p_Termination = GenerateRandomValue(0, 1.0);
+  float Russian_Roulette_factor = 1.0;
+  float red   = 0.0;
+  float green = 0.0;
+  float blue  = 0.0;
 
-  if (p_Termination < P_RUSSIAN_ROULETTE)
+  // Calculate secondary ray along direction of diffuse reflection, specular reflection, transmission, or absorption 
+
+  /* BRDF IMPORTANCE SAMPLING:
+  Select the directions of reflected and transmitted rays with probabilities proportional 
+  to the Phong BRDF of the scattering surface. See Jason Lawrence's notes for details. */
+
+  if ( incident_surface_interaction == DIFFUSE_REFLECTED )
   {
-    // Terminate photon in Russian Roulette by setting power to 0
-    new_photon_power = RNRgb(0, 0, 0);
-  }
+    // Diffuse reflection
+    R3Vector reflected_ray = Reflect(old_photon_ray.Vector(), normal);
+    R3Vector r_sampled = DiffuseReflectionBRDFImportanceSampling(*brdf, point, normal, reflected_ray);
+    new_photon_ray = R3Ray(old_photon_position - old_photon_ray.Vector() * 0.001, r_sampled);
+    red   = brdf->Diffuse().R();
+    green = brdf->Diffuse().G();
+    blue  = brdf->Diffuse().B(); 
+  } 
+  else if ( incident_surface_interaction == SPECULAR_REFLECTED )
+  {
+    // Specular reflection
+    R3Vector reflected_ray = Reflect(old_photon_ray.Vector(), normal);
+    R3Vector r_sampled = SpecularReflectionBRDFImportanceSampling(*brdf, point, normal, reflected_ray);
+    new_photon_ray = R3Ray(old_photon_position - old_photon_ray.Vector() * 0.001, r_sampled);
+    red   = brdf->Specular().R();
+    green = brdf->Specular().G();
+    blue  = brdf->Specular().B(); 
+  } 
+  else if ( incident_surface_interaction == TRANSMITTED )
+  {
+    // Transmission through transparency
+    float index_of_refraction = brdf->IndexOfRefraction();
+    R3Vector new_photon_direction = Refract(old_photon_ray.Vector(), normal, index_of_refraction);
+    new_photon_ray = R3Ray(old_photon_position, new_photon_direction);
+    red   = brdf->Transmission().R();
+    green = brdf->Transmission().G();
+    blue  = brdf->Transmission().B(); 
+  } 
   else 
   {
-    // Calculate secondary ray along direction of diffuse reflection, specular reflection, transmission, or absorption 
-
-    /* BRDF IMPORTANCE SAMPLING:   [TODO]
-    Select the directions of reflected and transmitted rays with probabilities proportional 
-    to the Phong BRDF of the scattering surface. See Jason Lawrence's notes for details. */
-
-    if ( incident_surface_interaction == DIFFUSE_REFLECTED )
-    {
-      // Diffuse reflection
-      //new_photon_ray = R3Ray(old_photon_position - old_photon_ray.Vector() * 0.00001, r);
-
-      R3Vector reflected_ray = Reflect(old_photon_ray.Vector(), normal);
-      R3Vector r_sampled = DiffuseReflectionBRDFImportanceSampling(*brdf, point, normal, reflected_ray);
-      new_photon_ray = R3Ray(old_photon_position - old_photon_ray.Vector() * 0.001, r_sampled);
-    } 
-    else if ( incident_surface_interaction == SPECULAR_REFLECTED )
-    {
-      // Specular reflection
-      //new_photon_ray = R3Ray(old_photon_position - old_photon_ray.Vector() * 0.00001, r);
-
-      R3Vector reflected_ray = Reflect(old_photon_ray.Vector(), normal);
-      R3Vector r_sampled = SpecularReflectionBRDFImportanceSampling(*brdf, point, normal, reflected_ray);
-      new_photon_ray = R3Ray(old_photon_position - old_photon_ray.Vector() * 0.001, r_sampled);
-    } 
-    else if ( incident_surface_interaction == TRANSMITTED )
-    {
-      // Transmission through transparency
-      float index_of_refraction = brdf->IndexOfRefraction();
-      R3Vector new_photon_direction = Refract(old_photon_ray.Vector(), normal, index_of_refraction);
-      new_photon_ray = R3Ray(old_photon_position, new_photon_direction);
-    } 
-
-    float Russian_Roulette_factor = 1.0 / max( P_RUSSIAN_ROULETTE, 0.1f ) ;
-    new_photon_power *= Russian_Roulette_factor;
+    new_photon_power = RNRgb(0, 0, 0);
   }
+
+  Russian_Roulette_factor = max(red, max(green, blue));
+  new_photon_power *= Russian_Roulette_factor;
 
   R3Point new_photon_position = R3Point(0, 0, 0);
   if (!scene->Intersects(new_photon_ray, &node, &element, &shape, &new_photon_position, &normal, &t)) { return NULL; }
@@ -620,9 +630,10 @@ CreatePhotonMap(R3Scene *scene,
     int start_photon_index = photon_index;
     int photon_allotment = round( ( (float) light_max_intensities[i] / total_intensity ) * photon_count );
 
-    cout << photon_allotment << endl;
+    // cout << photon_allotment << endl;
     
     // Iterate through all the photons in photon_count to emit photons from light sources
+    // [TODO] Which of these is correct?
     //for (int j = start_photon_index; j < start_photon_index + photon_allotment; j++)
     while (photon_index < start_photon_index + photon_allotment)
     {
@@ -807,23 +818,21 @@ EstimateRadiance( R3Scene* scene,
 
   //if ((total_photon_count < 0.05 * closest_points_count) && isCausticMap) { return RNRgb(0, 0, 0); }
 
-  float k = 100; // cone filter constant characterizing the filter, k >= 1
+  float k = 1; // cone filter constant characterizing the filter, k >= 1
 
   for (int i = 0; i < total_photon_count; i++) 
   {
     Photon *Current_Photon = Closest_Photons.Kth(i);
 
-    float d_p = powf( reference_point.X() - Current_Photon->GetPosition().X(), 2 ) + 
-                powf( reference_point.Y() - Current_Photon->GetPosition().Y(), 2 ) + 
-                powf( reference_point.Z() - Current_Photon->GetPosition().Z(), 2 );
+    float d_p = DistanceBetweenPoints(reference_point, Current_Photon->GetPosition());
 
     // CONE FILTERING, calculate weight of cone filter
     float w_cone = 1 - ( d_p / (k * MAX_DIST) );
 
     // GAUSSIAN FILTERING, calculate weight of Gaussian filter
-    float alpha = 0.918; 
-    float beta  = 1.953; 
-    float w_gaussian = alpha * ( 1 - ( (1-exp(-beta*((d_p*d_p)/(2*MAX_DIST*MAX_DIST)))) / (1-exp(-beta)) ));
+    // float alpha = 0.918; 
+    // float beta  = 1.953; 
+    // float w_gaussian = alpha * ( 1 - ( (1-exp(-beta*((d_p*d_p)/(2*MAX_DIST*MAX_DIST)))) / (1-exp(-beta)) ));
 
     // total_power += Current_Photon->GetPower();
     total_power += Current_Photon->GetPower() * w_cone;
@@ -896,13 +905,8 @@ CalculateBRDFContribution( R3Scene* scene,
       // Adding shadow rays
       if ( scene->Intersects(Light_To_Point_Ray, &_node, &_element, &_shape, &_point, &_normal, &_t) )
       {
-        if ( DistanceBetweenPoints(point, _point) < 0.005 ) { 
-          brdf_color += light->Reflection(*brdf, eye, point, normal); 
-        }
-        else { 
-          SurfaceInteraction surface_interaction = GetSurfaceInteraction(scene, Light_To_Point_Ray);
-          if (!brdf->IsTransparent()) { inShadow = TRUE; }
-        }
+        if ( DistanceBetweenPoints(point, _point) < 0.005 ) { brdf_color += light->Reflection(*brdf, eye, point, normal); }
+        else { if (!brdf->IsTransparent()) { inShadow = TRUE; } }
       } 
       else { brdf_color += light->Reflection(*brdf, eye, point, normal); }
     }
@@ -913,19 +917,19 @@ CalculateBRDFContribution( R3Scene* scene,
 
 
 
+// Currently not being used
+// R3Kdtree<Photon *>
+// MergeKdtrees(R3Kdtree<Photon *> Tree_1, R3Kdtree<Photon *> Tree_2)
+// {
+//   R3Kdtree<Photon *> Merged_Tree(Tree_1);
 
-R3Kdtree<Photon *>
-MergeKdtrees(R3Kdtree<Photon *> Tree_1, R3Kdtree<Photon *> Tree_2)
-{
-  R3Kdtree<Photon *> Merged_Tree(Tree_1);
+//   RNArray<Photon *> Tree_2_Photons;
+//   int tree_2_photon_count = Merged_Tree.FindAll( R3Point(0, 0, 0), 0, Tree_2.NPoints(), Tree_2_Photons );
 
-  RNArray<Photon *> Tree_2_Photons;
-  int tree_2_photon_count = Merged_Tree.FindAll( R3Point(0, 0, 0), 0, Tree_2.NPoints(), Tree_2_Photons );
+//   for (int i = 0; i < Tree_2.NPoints(); i++) { Merged_Tree.InsertPoint(Tree_2_Photons.Kth(i));}
 
-  for (int i = 0; i < Tree_2.NPoints(); i++) { Merged_Tree.InsertPoint(Tree_2_Photons.Kth(i));}
-
-  return Merged_Tree;
-}
+//   return Merged_Tree;
+// }
 
 
 
@@ -985,16 +989,19 @@ RenderImagePhotonMapping(R3Scene *scene,
         all rays to estimate the radiance to store in the output image for each pixel. 
         Compare the results with different numbers of rays per pixel (N). */
 
+        float contribution_factor = 1.0 / RAYS_PER_PIXEL;
+
         for (int k = 0; k < RAYS_PER_PIXEL; k++) 
         {
+           RNRgb global_radiance  = RNRgb(0, 0, 0);
+           RNRgb caustic_radiance = RNRgb(0, 0, 0);
+           RNRgb brdf_color       = RNRgb(0, 0, 0);
+
           // Get intersection information
-          const R3Material *material = (element) ? element->Material() : &R3default_material;
-          const R3Brdf *brdf = (material) ? material->Brdf() : &R3default_brdf;
           bool inShadow = FALSE;
 
           // Determine the surface interaction to determine properties of secondary ray
           SurfaceInteraction surface_interaction = GetSurfaceInteraction( scene, ray );
-          RNRgb global_radiance = RNRgb(0, 0, 0);
           R3Ray new_ray = R3Ray(ray);
 
           while ( surface_interaction != DIFFUSE_REFLECTED )
@@ -1005,14 +1012,14 @@ RenderImagePhotonMapping(R3Scene *scene,
             if ( surface_interaction == TRANSMITTED)
             {
               float index_of_refraction = brdf->IndexOfRefraction();
-              R3Vector new_photon_direction = Refract(ray.Vector(), normal, index_of_refraction);
+              R3Vector new_photon_direction = Refract(new_ray.Vector(), normal, index_of_refraction);
               new_ray = R3Ray(point + new_photon_direction * 0.00001, new_photon_direction);
             }
             else if ( surface_interaction == SPECULAR_REFLECTED )
             {
               // Calculate direction of reflected vector
-              R3Vector reflected_ray = Reflect(ray.Vector(), normal);
-              new_ray = R3Ray(point - ray.Vector() * 0.001, reflected_ray);
+              R3Vector reflected_ray = Reflect(new_ray.Vector(), normal);
+              new_ray = R3Ray(point - new_ray.Vector() * 0.001, reflected_ray);
             }
             else if ( surface_interaction == ABSORBED )  { break; }
 
@@ -1020,35 +1027,32 @@ RenderImagePhotonMapping(R3Scene *scene,
             surface_interaction = GetSurfaceInteraction( scene, new_ray );
           }
 
-          if ( surface_interaction == DIFFUSE_REFLECTED ) 
+          // [TODO] Shouldn't be absorbed here, but right not creates not a speckled image
+          if ( surface_interaction == DIFFUSE_REFLECTED || surface_interaction == ABSORBED ) 
           {
             R3Material *material = (element) ? element->Material() : &R3default_material;
             const R3Brdf *brdf   = (material) ? material->Brdf() : &R3default_brdf;
-            global_radiance += EstimateRadiance(scene, point, brdf, normal, CLOSEST_PHOTONS_COUNT, FALSE, Global_Photon_Map);
+
+            global_radiance  = EstimateRadiance(scene, point, brdf, normal, CLOSEST_PHOTONS_COUNT, FALSE, Global_Photon_Map);
+            brdf_color       = CalculateBRDFContribution(scene, brdf, eye, point, normal, inShadow);
+            caustic_radiance = EstimateRadiance(scene, point, brdf, normal, CLOSEST_PHOTONS_COUNT, TRUE, Caustic_Photon_Map);
           }
 
-          RNRgb caustic_radiance = EstimateRadiance(scene, point, brdf, normal, CLOSEST_PHOTONS_COUNT, TRUE, Caustic_Photon_Map);
-          RNRgb brdf_color       = CalculateBRDFContribution( scene, brdf, eye, point, normal, inShadow );
+          if (inShadow) { global_radiance = global_radiance / 4; }
 
-          //if (inShadow) { global_radiance = global_radiance / 4; }
+          global_radiance  *= 7.0;
+          caustic_radiance *= 1.0 / 6;
+          brdf_color       *= 1.0 / 8;
 
-          color += global_radiance;
-          color += caustic_radiance;
-          color += brdf_color;
+          color += contribution_factor * global_radiance;
+          color += contribution_factor * caustic_radiance;
+          color += contribution_factor * brdf_color;
         }
 
-        color *= 1.0 / RAYS_PER_PIXEL;
-
-        // for cornell box with max clamping factor
-        //radiance = radiance / 4;
-
-        //For Cornell box w/ max clamping value
-        //color = color / 6;
-
-        ClampColorValue(color);
+        RNRgb final_color = ClampColorValue(color);
 
         // Set pixel color
-        image->SetPixelRGB(i, j, color);
+        image->SetPixelRGB(i, j, final_color);
       }
     }
   }
