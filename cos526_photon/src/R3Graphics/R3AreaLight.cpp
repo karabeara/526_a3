@@ -315,8 +315,27 @@ RandomlySampledRay(void) const
     sample_point += r1 * Radius() * axis1;
     sample_point += r2 * Radius() * axis2;
 
-    R3Ray ray = R3Ray(sample_point, Direction());
+    //Sample a direction around the hemisphere determined by Direction() 
+    R3Vector sample_direction = -Direction();
+    while ( Direction().Dot(sample_direction) < 0 ) 
+    {
 
+        double theta = 2 * M_PI * RNRandomScalar();
+        double phi = acos(1 - 2 * RNRandomScalar());
+        double x = sin(phi) * cos(theta);
+        double y = sin(phi) * sin(theta);
+        double z = cos(phi);
+
+        R3Point projected_point = R3Point(x + sample_point.X(), 
+                                          y + sample_point.Y(), 
+                                          z + sample_point.Z());
+
+        R3Ray current_ray = R3Ray(sample_point, projected_point);
+        sample_direction = current_ray.Vector();
+    }
+
+
+    R3Ray ray = R3Ray(sample_point, sample_direction);
     return ray;
 }
 

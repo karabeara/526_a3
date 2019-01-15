@@ -5,7 +5,8 @@
 /* Include files */
 
 #include "R3Graphics.h"
-
+#include <iostream>
+using namespace std;
 
 
 /* Member functions */
@@ -1462,7 +1463,7 @@ FindPrincetonMaterialAndElement(R3Scene *scene, R3SceneNode *node,
 static int
 ReadPrinceton(R3Scene *scene, R3SceneNode *node, const char *filename)
 {
-  // Open file
+  // Open file 
   FILE *fp;
   if (!(fp = fopen(filename, "r"))) {
     fprintf(stderr, "Unable to open file %s", filename);

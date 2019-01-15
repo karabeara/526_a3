@@ -30,26 +30,36 @@ using namespace std;
 // Handy global variables
 enum SurfaceInteraction { DIFFUSE_REFLECTED, SPECULAR_REFLECTED, TRANSMITTED, ABSORBED };
 
-int CLOSEST_PHOTONS_COUNT = 500;
+int CLOSEST_GLOBAL_PHOTONS_COUNT = 500;
+int CLOSEST_CAUSTIC_PHOTONS_COUNT = 100;
 
 int MAX_BOUNCE_COUNT = 100;
 
 float MIN_DIST = 0;
 float GLOBAL_MAX_DIST = 0.5;
-float CAUSTIC_MAX_DIST = 0.05;
+float CAUSTIC_MAX_DIST = 0.02;
 float VOLUME_MAX_DIST = 0.02;
 
 // Properties of the participating medium
 float SCATTERING_COEFFICIENT = 0.1;  // sigma
 float ABSORPTION_COEFFICIENT = 0.1;  // alpha
-float SAMPLES_PER_RAY = 100.0;
+float SAMPLES_PER_RAY = 1000.0;
 
 float MIN_BLEEDING_DIST = 0.1;
 
 // For antialiasing, using FACTOR^2 samples from the image 
-float ANTIALIASING_FACTOR = 2.0;
+float ANTIALIASING_FACTOR = 4.0;
 
 int RAYS_PER_PIXEL = 1; 
+
+
+// Big render
+// 40,000 global photons
+// 100,000 caustic photons
+// 1000 samples per ray
+// Caustic max distance 0.2
+// Closest caustic photons count 100
+// Closest global photons count 500
 
 /* TODO: 
 -- Area light
@@ -694,8 +704,8 @@ CreatePhotonMap(R3Scene *scene,
       //   photon_index++;
       // }
 
-      // All_Photons->InsertKth(Current_Photon, photon_index);
-      // photon_index++;
+      All_Photons->InsertKth(Current_Photon, photon_index);
+      photon_index++;
 
       int bounce_count = 0;
 
@@ -1287,12 +1297,14 @@ RenderImagePhotonMapping(R3Scene *scene,
             // Compute color
             RNRgb color = scene->Ambient();
 
-            //float medium_contribution_factor = 0.6 / SAMPLES_PER_RAY; // for high in the sky sphere
+            //float medium_contribution_factor = 0.4 / SAMPLES_PER_RAY; // for high in the sky sphere
             float medium_contribution_factor = 0.6 / SAMPLES_PER_RAY; // for low on the floor sphere
             RNRgb Medium_Contribution = medium_contribution_factor * RNRgb(1.0, 1.0, 1.0);
 
             /* SINGLE SCATTER: 
-            Conduct ray marching to sample point in the medium and see whether they interact with the individual scene lights. */
+            Conduct ray marching to sample point in the medium and 
+            see whether they interact with the individual scene lights. */
+
             for (int m = 1; m < SAMPLES_PER_RAY; m++) 
             {
               float ray_distance = DistanceBetweenPoints(eye, point);
@@ -1318,7 +1330,8 @@ RenderImagePhotonMapping(R3Scene *scene,
                 if ( scene->Intersects(Light_To_Point_Ray, &_node, &_element, &_shape, &_point, &_normal, &_t) )
                 {
                   // Add contribution of light from the interaction with the medium if this sampled point is in direct lighting
-                  if ( DistanceBetweenPoints(light_position, _point) > DistanceBetweenPoints(light_position, ray_sample_point) ) 
+                  if ( light->PowerGivenDistance(ray_sample_point, R3Vector(0, 0, 0)) != RNRgb(0, 0, 0) &&
+                       DistanceBetweenPoints(light_position, _point) > DistanceBetweenPoints(light_position, ray_sample_point) ) 
                   { 
                     color += Medium_Contribution; 
                   }
@@ -1376,26 +1389,32 @@ RenderImagePhotonMapping(R3Scene *scene,
                 R3Material *material = (element) ? element->Material() : &R3default_material;
                 const R3Brdf *brdf   = (material) ? material->Brdf() : &R3default_brdf;
 
-                global_radiance  = EstimateSurfaceRadiance(scene, point, brdf, normal, CLOSEST_PHOTONS_COUNT, FALSE, Global_Photon_Map);
+                global_radiance  = EstimateSurfaceRadiance(scene, point, brdf, normal, CLOSEST_GLOBAL_PHOTONS_COUNT, FALSE, Global_Photon_Map);
                 brdf_color       = CalculateBRDFContribution(scene, brdf, eye, point, normal, inShadow);
-                caustic_radiance = EstimateSurfaceRadiance(scene, point, brdf, normal, CLOSEST_PHOTONS_COUNT, TRUE, Caustic_Photon_Map);
+                caustic_radiance = EstimateSurfaceRadiance(scene, point, brdf, normal, CLOSEST_CAUSTIC_PHOTONS_COUNT, TRUE, Caustic_Photon_Map);
               }
 
               if (inShadow) { global_radiance = global_radiance / 5; }
 
-              // Cornell box with the old light
+              // Cornell box w/ the old light
               // global_radiance  *= 7.0;
               // caustic_radiance *= 1.0 / 6;
               // brdf_color       *= 1.0 / 8;
 
-              // Cornell box with the new light
-              // global_radiance  *= 10000;
-              // caustic_radiance *= 4;
-              // brdf_color       *= 6;
+              // // Cornell box w/ the new light
+              // global_radiance  *= 5000;
+              // caustic_radiance *= 6;
+              // brdf_color       *= 4;
 
-              global_radiance  *= 5000;
-              caustic_radiance *= 6;
-              brdf_color       *= 4;
+              // Cornell box w/ spot light
+              // global_radiance  *= 50000;
+              // caustic_radiance *= 6;
+              // brdf_color       *= 40;
+
+              //Caustic specular ring w/ the new light
+              global_radiance  *= 0.1;
+              caustic_radiance *= 40;
+              brdf_color       *= 1;
 
               // COS 526
               // global_radiance  *= 1.0 / 10000000000000000;

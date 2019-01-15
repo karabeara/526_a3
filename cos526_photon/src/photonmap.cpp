@@ -179,13 +179,6 @@ DrawLights(R3Scene *scene)
       R3LoadPoint(position + 0.25 * radius * direction);
       glEnd();
     }
-    else {
-      fprintf(stderr, "Unrecognized light type: %d\n", light->ClassID());
-      fprintf(stderr, "Area light type: %d\n", R3AreaLight::CLASS_ID());
-      fprintf(stderr, "Point light type: %d\n", R3PointLight::CLASS_ID());
-      fprintf(stderr, "Spot light type: %d\n", R3SpotLight::CLASS_ID());
-      return;
-    }
   }
 }
 
@@ -852,7 +845,7 @@ int main(int argc, char **argv)
   // Offline render part
   if (output_image_name) {
 
-    //Set scene viewport
+    // //Set scene viewport
     scene->SetViewport(R2Viewport(0, 0, render_image_width, render_image_height));
 
     // Initialize GLUT
@@ -899,21 +892,42 @@ int main(int argc, char **argv)
     cout << "NUMBER OF CAUSTIC PHOTONS: " << Caustic_Photons.NEntries() << endl;
     cout << "NUMBER OF VOLUME PHOTONS: " << Volume_Photons.NEntries() << endl;
 
-    // Uncomment this line below for visualization
-    // GLUTMainLoop();
-
-    // Delete viewer (doesn't ever get here)
-    delete viewer;
     delete image;
   }
 
   else {
+    
+    //Set scene viewport
+    scene->SetViewport(R2Viewport(0, 0, render_image_width, render_image_height));
+
     // Initialize GLUT
     GLUTInit(&argc, argv);
 
     // Create viewer
     viewer = new R3Viewer(scene->Viewer());
     if (!viewer) exit(-1);
+
+    /* MULTIPLE PHOTON MAPS: 
+    Implement separate photon maps for global (L{S|D}*D) and caustic (LS+D) ray paths 
+    (section 2.1.5 in Jensen01). */
+
+    R3Kdtree<Photon *> Global_Photon_Map = CreatePhotonMap(scene, 
+                                                           global_photon_count, 
+                                                           TRUE,
+                                                           &Global_Photons);
+
+    // R3Kdtree<Photon *> Caustic_Photon_Map = CreatePhotonMap(scene, 
+    //                                                         caustic_photon_count, 
+    //                                                         TRUE,
+    //                                                         &Caustic_Photons);
+
+    // R3Kdtree<Photon *> Volume_Photon_Map = CreateVolumePhotonMap(scene, 
+    //                                                              volume_photon_count, 
+    //                                                              &Volume_Photons);
+
+    cout << "NUMBER OF GLOBAL PHOTONS: " << Global_Photons.NEntries() << endl;
+    cout << "NUMBER OF CAUSTIC PHOTONS: " << Caustic_Photons.NEntries() << endl;
+    cout << "NUMBER OF VOLUME PHOTONS: " << Volume_Photons.NEntries() << endl;
     
     // Run GLUT interface
     GLUTMainLoop();

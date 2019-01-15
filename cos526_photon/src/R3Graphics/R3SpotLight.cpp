@@ -123,7 +123,8 @@ IntensityAtPoint(const R3Point& point) const
 const R3Ray R3SpotLight::
 LightToPointRay(R3Point point) const
 {
-    return R3Ray(Position(), point);
+    R3Ray ray = R3Ray(R3Point(0, 0, 0), R3Point(1, 1, 1));
+    return ray;
 }
 
 
@@ -138,52 +139,46 @@ RandomlySampledRay(void) const
 
     R3Point pt_1 = Position();
 
+    float cos_cut_off_angle = cos( CutOffAngle() );
+
     // Generating Randomly uniformly-distributed point of the surface of a sphere
     // Code referenced from: http://corysimon.github.io/articles/uniformdistn-on-sphere/
     unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     std::mt19937 generator (seed);
     std::uniform_real_distribution<double> uniform01(0, 1.0);
 
-    double theta = 2 * M_PI * uniform01(generator);
-    double phi = acos(1 - 2 * uniform01(generator));
-    double x = sin(phi) * cos(theta);
-    double y = sin(phi) * sin(theta);
-    double z = cos(phi);
+    float spotCosine = cos_cut_off_angle;
+    R3Ray ray = R3Ray(R3Point(0, 0, 0), R3Point(1, 1, 1));
 
+    while (spotCosine <= cos_cut_off_angle)
+    {
+        double theta = 2 * M_PI * uniform01(generator);
+        double phi = acos(1 - 2 * uniform01(generator));
+        double x = sin(phi) * cos(theta);
+        double y = sin(phi) * sin(theta);
+        double z = cos(phi);
 
-
-
-
-
-
-    
-  // Specular exponent (higher values give a sharper specular reflection)
-  RNScalar n = brdf.Shininess();
-
-  // Transformation in spherical coordinates with respect to direction of perfect specular reflection
-  float alpha = acos( powf( u1, 1 / (n+1) ) );
-  float phi = 2 * M_PI * u2;
-
-  // float x = cos(phi) * cos(theta); 
-  // float y = sin(phi) * cos(theta);
-  // float z = sin(theta);
-
-  float x = cos(phi) * cos(alpha); 
-  float y = sin(phi) * cos(alpha);
-  float z = sin(alpha);
-
-  return reflected_ray + R3Vector(x, y, z);
-
-
-
-    
-
-    R3Point pt_2 = R3Point(x + pt_1.X(), 
+        R3Point pt_2 = R3Point(x + pt_1.X(), 
                            y + pt_1.Y(), 
                            z + pt_1.Z());
 
-    R3Ray ray = R3Ray(pt_1, pt_2);
+        ray = R3Ray(pt_1, pt_2);
 
+        spotCosine = Direction().Dot( ray.Vector() );
+    }
+
+
+    // L = normalize( light.position.xyz/light.position.w - v_eyeCoords );
+    // if (light.spotCosineCutoff > 0.0) { // the light is a spotlight
+    // R3Vector D = normalize( Direction() );  // unit vector!
+    // float spotCosine = D.Dot(-L);
+    // if (spotCosine >= light.spotCosineCutoff) { 
+    //     spotFactor = pow(spotCosine,light.spotExponent);
+    // }
+    // else { // The point is outside the cone of light from the spotlight.
+    //     return vec3(0.0); // The light will add no color to the point.
+    // }
+    // // Light intensity will be multiplied by spotFactor
 
     return ray;
 }
@@ -192,23 +187,27 @@ RandomlySampledRay(void) const
 const RNRgb R3SpotLight::
 PowerGivenDistance(R3Point reference_point, R3Vector normal) const
 {
-    RNRgb resulting_power; 
+    // RNRgb resulting_power; 
 
-    double x = reference_point.X() - Position().X();
-    double y = reference_point.Y() - Position().Y();
-    double z = reference_point.Z() - Position().Z();
+    // double x = reference_point.X() - Position().X();
+    // double y = reference_point.Y() - Position().Y();
+    // double z = reference_point.Z() - Position().Z();
 
-    // Distance between the two points
-    double d = sqrt( x*x + y*y + z*z );
+    // // Distance between the two points
+    // double d = sqrt( x*x + y*y + z*z );
 
-    double ca = ConstantAttenuation();
-    double la = LinearAttenuation();
-    double qa = QuadraticAttenuation();
+    // double ca = ConstantAttenuation();
+    // double la = LinearAttenuation();
+    // double qa = QuadraticAttenuation();
 
-    // Calculate: (r,g,b) * 1.0/ (ca + la*d + qa*d*d)
-    resulting_power = Color() * ( 1.0 / ( ca + (la*d) + (qa*d*d) ) );
+    // // Calculate: (r,g,b) * 1.0/ (ca + la*d + qa*d*d)
+    // resulting_power = Color() * ( 1.0 / ( ca + (la*d) + (qa*d*d) ) );
 
-    return resulting_power;
+    // return resulting_power;
+
+    return Color() * IntensityAtPoint(reference_point);
+
+    //return Color();
 }
 
 
