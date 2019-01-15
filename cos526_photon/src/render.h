@@ -26,17 +26,11 @@ class Photon {
 
 };
 
-// Private variables used by internal functions
-//RNArray<Photon *>* All_Photons;
-//int photon_count;
-
 R3Kdtree<Photon *> CreatePhotonMap(R3Scene *scene, int photon_count, bool isCausticMap, RNArray<Photon *>* All_Photons);
 
-R3Kdtree<Photon *> ScatterPhotons(R3Scene *scene, int photon_count, RNArray<Photon *>* All_Photons, R3Kdtree<Photon *> Photon_Map);
+R3Kdtree<Photon *> CreateVolumePhotonMap(R3Scene *scene, int photon_count, RNArray<Photon *>* All_Photons);
 
-RNRgb EstimateRadiance(R3Point reference_point, int closest_points_count, RNArray<Photon *> Closest_Photons, R3Kdtree<Photon*> Photon_Map);
-
-R2Image *RenderImagePhotonMapping(R3Scene *scene, int width, int height, int photon_count, R3Kdtree<Photon *> Global_Photon_Map, R3Kdtree<Photon *> Caustic_Photon_Map);
+R2Image *RenderImagePhotonMapping(R3Scene *scene, int width, int height, int photon_count, R3Kdtree<Photon *> Global_Photon_Map, R3Kdtree<Photon *> Caustic_Photon_Map, R3Kdtree<Photon *> Volume_Photon_Map);
 
 R2Image *RenderImageRaytracing(R3Scene *scene, int width, int height, int print_verbose);
 
@@ -59,7 +53,7 @@ Reflect(R3Vector rayVector, R3Vector normal)
 inline R3Vector 
 Refract(const R3Vector &I, R3Vector &N, float ior) 
 { 
-    //https://www.scratchapixel.com/lessons/3d-basic-rendering/introduction-to-shading/reflection-refraction-fresnel
+    // Refractions calculation reference: https://www.scratchapixel.com/lessons/3d-basic-rendering/introduction-to-shading/reflection-refraction-fresnel
 
     float cosi = I.Dot(N); // if I.Dot(N) is negative, we are outside the surface; we want cos(theta) to be positive
     float etai = 1, etat = ior; 
@@ -78,5 +72,4 @@ Refract(const R3Vector &I, R3Vector &N, float ior)
     float k = 1 - eta * eta * (1 - cosi * cosi);  // if k < 0, total internal reflection
     
     return R3Vector(k < 0 ? Reflect(I, n) : eta * I + ( eta * cosi - sqrtf(k) ) * n); 
-    //return R3Vector(k < 0 ? Reflect(I, n) : eta * I + ( eta * cosi - sqrtf(k) ) * n); 
 } 

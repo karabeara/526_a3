@@ -131,6 +131,11 @@ LightToPointRay(R3Point point) const
 const R3Ray R3SpotLight::
 RandomlySampledRay(void) const
 {
+    // Properties of the R3SpotLight
+    // R3Vector Direction()
+    // RNScalar DropOffRate()
+    // RNAngle  CutOffAngle()
+
     R3Point pt_1 = Position();
 
     // Generating Randomly uniformly-distributed point of the surface of a sphere
@@ -145,11 +150,40 @@ RandomlySampledRay(void) const
     double y = sin(phi) * sin(theta);
     double z = cos(phi);
 
+
+
+
+
+
+
+    
+  // Specular exponent (higher values give a sharper specular reflection)
+  RNScalar n = brdf.Shininess();
+
+  // Transformation in spherical coordinates with respect to direction of perfect specular reflection
+  float alpha = acos( powf( u1, 1 / (n+1) ) );
+  float phi = 2 * M_PI * u2;
+
+  // float x = cos(phi) * cos(theta); 
+  // float y = sin(phi) * cos(theta);
+  // float z = sin(theta);
+
+  float x = cos(phi) * cos(alpha); 
+  float y = sin(phi) * cos(alpha);
+  float z = sin(alpha);
+
+  return reflected_ray + R3Vector(x, y, z);
+
+
+
+    
+
     R3Point pt_2 = R3Point(x + pt_1.X(), 
                            y + pt_1.Y(), 
                            z + pt_1.Z());
 
     R3Ray ray = R3Ray(pt_1, pt_2);
+
 
     return ray;
 }

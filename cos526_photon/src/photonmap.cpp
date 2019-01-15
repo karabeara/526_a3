@@ -1,7 +1,6 @@
 // Source file for the scene viewer program
 
 
-
 // Include files 
 
 #include "R3Graphics/R3Graphics.h"
@@ -18,6 +17,7 @@ static int render_image_width = 64;
 static int render_image_height = 64;
 static int global_photon_count = 1000;
 static int caustic_photon_count = 1000;
+static int volume_photon_count = 1000;
 static int rays_per_pixel_count = 4;
 static int print_verbose = 0;
 
@@ -38,6 +38,7 @@ static R3Scene *scene = NULL;
 static R3Point center(0, 0, 0);
 static RNArray<Photon *> Global_Photons;
 static RNArray<Photon *> Caustic_Photons;
+static RNArray<Photon *> Volume_Photons;
 
 
 // Display variables
@@ -275,7 +276,7 @@ camera and successive surface intersections for a random sampling of rays. */
 static void 
 DrawPhotonRayPaths(R3Scene *scene)
 {
-  double radius = 0.02 * scene->BBox().DiagonalRadius();
+  //double radius = 0.02 * scene->BBox().DiagonalRadius();
 
   for (int i = 0; i < Global_Photons.NEntries(); i++) 
   {
@@ -318,12 +319,8 @@ static void
 DrawPhotons(R3Scene *scene)
 {
   // Ray intersection variables
-  R3SceneNode *node;
-  R3SceneElement *element;
-  R3Shape *shape;
   R3Point point;
   R3Vector normal;
-  RNScalar t;
 
   // Ray intersection variables
   //double radius = 0.0025 * scene->BBox().DiagonalRadius();
@@ -342,9 +339,9 @@ DrawPhotons(R3Scene *scene)
     glColor3d(r_Power, g_Power, b_Power);
 
     R3Point  photon_position  = Current_Photon->GetPosition();
-    R3Ray    photon_direction = Current_Photon->GetDirection();
-    R3Vector photon_normal    = -photon_direction.Vector();
-    RNRgb    photon_power     = Current_Photon->GetPower();
+    // R3Ray    photon_direction = Current_Photon->GetDirection();
+    // R3Vector photon_normal    = -photon_direction.Vector();
+    // RNRgb    photon_power     = Current_Photon->GetPower();
 
     // Show photon positions 
     R3Sphere(photon_position, radius).Draw();
@@ -798,6 +795,9 @@ ParseArgs(int argc, char **argv)
       else if (!strcmp(*argv, "-causticPhotonCount")) {
         argc--; argv++; caustic_photon_count = atoi(*argv); 
       }
+      else if (!strcmp(*argv, "-volumePhotonCount")) {
+        argc--; argv++; volume_photon_count = atoi(*argv); 
+      }
       else if (!strcmp(*argv, "-showRayPaths")) {
         show_photon_ray_paths = 1; 
       }
@@ -875,12 +875,17 @@ int main(int argc, char **argv)
                                                             TRUE,
                                                             &Caustic_Photons);
 
+    // R3Kdtree<Photon *> Volume_Photon_Map = CreateVolumePhotonMap(scene, 
+    //                                                              volume_photon_count, 
+    //                                                              &Volume_Photons);
+
     //Render image calling method in render.cpp
     R2Image *image = RenderImagePhotonMapping(scene, 
                                               render_image_width, 
                                               render_image_height, 
                                               global_photon_count,
                                               Global_Photon_Map,
+                                              Caustic_Photon_Map, 
                                               Caustic_Photon_Map);
 
     //R2Image *image = RenderImageRaytracing(scene, render_image_width, render_image_height, print_verbose);
@@ -892,6 +897,7 @@ int main(int argc, char **argv)
 
     cout << "NUMBER OF GLOBAL PHOTONS: " << Global_Photons.NEntries() << endl;
     cout << "NUMBER OF CAUSTIC PHOTONS: " << Caustic_Photons.NEntries() << endl;
+    cout << "NUMBER OF VOLUME PHOTONS: " << Volume_Photons.NEntries() << endl;
 
     // Uncomment this line below for visualization
     // GLUTMainLoop();
