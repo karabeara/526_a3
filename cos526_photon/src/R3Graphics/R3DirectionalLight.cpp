@@ -178,8 +178,7 @@ Reflection(const R3Brdf& brdf, const R3Point& eye,
 const R3Ray R3DirectionalLight::
 LightToPointRay(R3Point point) const
 {
-    //R3Ray opposite_ray = R3Ray(point, -Direction());
-    R3Point far_distant_point = point - Direction() * 1000.0;
+    R3Point far_distant_point = R3Point(0, 0, 0) - Direction() * 10000;
     return R3Ray(far_distant_point, Direction());
 }
 
@@ -188,10 +187,35 @@ LightToPointRay(R3Point point) const
 const R3Ray R3DirectionalLight::
 RandomlySampledRay(void) const
 {
-    R3Point  pt        = R3Point(0, 0, 0);
-    R3Vector direction = Direction();
+    //R3Circle circle_source = R3Circle(const R3Point& center, RNLength radius, const R3Vector& normal);
+    R3Point  center = R3Point(0, 0, 0) - Direction() * 10000;
+    RNLength  radius = 100000;
+    R3Vector normal = Direction();
 
-    R3Ray ray = R3Ray(pt, direction);
+    R3Circle circle_source = R3Circle( center, radius, normal );
+
+    // Get circle axes
+    R3Vector direction = Direction();
+    RNDimension dim = direction.MinDimension();
+    R3Vector axis1 = direction % R3xyz_triad[dim];
+    axis1.Normalize();
+    R3Vector axis2 = direction % axis1;
+    axis2.Normalize();
+
+    // Sample point uniformly from circular light source
+    RNScalar r1 = RNRandomScalar() * 2 - 1;
+    RNScalar r2 = RNRandomScalar() * 2 - 1; 
+    
+    while (r1*r1 + r2*r2 > 1) {
+        r1 = RNRandomScalar() * 2 - 1;
+        r2 = RNRandomScalar() * 2 - 1;
+    }
+
+    R3Point sample_point = R3Point(0, 0, 0);
+    sample_point += r1 * radius * axis1;
+    sample_point += r2 * radius * axis2;
+
+    R3Ray ray = R3Ray(sample_point, direction);
 
     return ray;
 }

@@ -274,8 +274,9 @@ DrawPhotonRayPaths(R3Scene *scene)
   for (int i = 0; i < Global_Photons.NEntries(); i++) 
   {
 
-    if (i == 0) { glColor3d(1.0, 0.0, 1.0); } 
-    else { glColor3d(0.0, 1.0, 0.0); } 
+    // if (i == 0) { glColor3d(1.0, 0.0, 1.0); } 
+    // else { glColor3d(0.0, 1.0, 0.0); } 
+    glColor3d(0.0, 1.0, 0.0);
 
     Photon *Current_Photon = Global_Photons.Kth(i); 
 
@@ -315,9 +316,11 @@ DrawPhotons(R3Scene *scene)
   R3Point point;
   R3Vector normal;
 
+  glColor3d(1.0, 1.0, 1.0);
+
   // Ray intersection variables
-  //double radius = 0.0025 * scene->BBox().DiagonalRadius();
-  double radius = 0.01 * scene->BBox().DiagonalRadius();
+  double radius = 0.00025 * scene->BBox().DiagonalRadius();
+  //double radius = 0.01 * scene->BBox().DiagonalRadius();
   //double radius = 0.03 * scene->BBox().DiagonalRadius();
 
   for (int i = 0; i < Global_Photons.NEntries(); i++) 
@@ -329,7 +332,7 @@ DrawPhotons(R3Scene *scene)
     float g_Power = Current_Photon->GetPower().G();
     float b_Power = Current_Photon->GetPower().B();
 
-    glColor3d(r_Power, g_Power, b_Power);
+    //glColor3d(r_Power, g_Power, b_Power);
 
     R3Point  photon_position  = Current_Photon->GetPosition();
     // R3Ray    photon_direction = Current_Photon->GetDirection();
@@ -913,7 +916,7 @@ int main(int argc, char **argv)
 
     R3Kdtree<Photon *> Global_Photon_Map = CreatePhotonMap(scene, 
                                                            global_photon_count, 
-                                                           TRUE,
+                                                           FALSE,
                                                            &Global_Photons);
 
     // R3Kdtree<Photon *> Caustic_Photon_Map = CreatePhotonMap(scene, 

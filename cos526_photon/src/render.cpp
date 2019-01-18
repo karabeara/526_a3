@@ -30,25 +30,25 @@ using namespace std;
 // Handy global variables
 enum SurfaceInteraction { DIFFUSE_REFLECTED, SPECULAR_REFLECTED, TRANSMITTED, ABSORBED };
 
-int CLOSEST_GLOBAL_PHOTONS_COUNT = 500;
-int CLOSEST_CAUSTIC_PHOTONS_COUNT = 100;
+int CLOSEST_GLOBAL_PHOTONS_COUNT = 100;
+int CLOSEST_CAUSTIC_PHOTONS_COUNT = 500;
 
 int MAX_BOUNCE_COUNT = 100;
 
 float MIN_DIST = 0;
 float GLOBAL_MAX_DIST = 0.5;
-float CAUSTIC_MAX_DIST = 0.02;
+float CAUSTIC_MAX_DIST = 0.05;
 float VOLUME_MAX_DIST = 0.02;
 
 // Properties of the participating medium
 float SCATTERING_COEFFICIENT = 0.1;  // sigma
 float ABSORPTION_COEFFICIENT = 0.1;  // alpha
-float SAMPLES_PER_RAY = 1000.0;
+float SAMPLES_PER_RAY = 100.0;
 
 float MIN_BLEEDING_DIST = 0.1;
 
 // For antialiasing, using FACTOR^2 samples from the image 
-float ANTIALIASING_FACTOR = 4.0;
+float ANTIALIASING_FACTOR = 1.0;
 
 int RAYS_PER_PIXEL = 1; 
 
@@ -62,18 +62,16 @@ int RAYS_PER_PIXEL = 1;
 // Closest global photons count 500
 
 /* TODO: 
--- Area light
--- Direction light
--- Spot light
-
--- Add Volume Map
+-- Add Volume Photon Mapping
 */
+
+
 
 /* 
  
 PHOTON TRACING:
 
-[Area, Direction, Spot light] Photon emission: Implement code to emit photons in random directions from every 
+[*****] Photon emission: Implement code to emit photons in random directions from every 
 light source in a scene. The total number of photons emitted for each light source 
 should be proportional to the power of the light source (so that each photon carries 
 approximately equal power), and the distribution of photons should be proportional 
@@ -704,8 +702,8 @@ CreatePhotonMap(R3Scene *scene,
       //   photon_index++;
       // }
 
-      All_Photons->InsertKth(Current_Photon, photon_index);
-      photon_index++;
+      // All_Photons->InsertKth(Current_Photon, photon_index);
+      // photon_index++;
 
       int bounce_count = 0;
 
@@ -1140,18 +1138,8 @@ EstimateVolumeRadiance( R3Scene* scene,
   // Volume from which the photons are gathered: 4/3 * (PI) * (radius^3)
   double sampling_volume = (4.0 / 3.0) * M_PI * MAX_DIST * MAX_DIST * MAX_DIST;
 
-  RNRgb color = RNRgb(0, 0, 0);
-
-  if (brdf) {
-    //Loop over all lights
-    for (int j = 0; j < scene->NLights(); j++) {
-      R3Light *light = scene->Light(j);
-      color += light->Reflection(*brdf, eye, reference_point, normal);
-    }
-  }
-
   // Sum over the power, times the BRDF, divided by the surface area that the photons were gathered from
-  RNRgb radiance = (total_power * color) / sampling_volume;
+  RNRgb radiance = total_power / sampling_volume;
 
   return radiance;
 }
@@ -1401,10 +1389,10 @@ RenderImagePhotonMapping(R3Scene *scene,
               // caustic_radiance *= 1.0 / 6;
               // brdf_color       *= 1.0 / 8;
 
-              // // Cornell box w/ the new light
-              // global_radiance  *= 5000;
-              // caustic_radiance *= 6;
-              // brdf_color       *= 4;
+              // Cornell box w/ the new light
+              global_radiance  *= 5000;
+              caustic_radiance *= 50;
+              brdf_color       *= 4;
 
               // Cornell box w/ spot light
               // global_radiance  *= 50000;
@@ -1412,14 +1400,9 @@ RenderImagePhotonMapping(R3Scene *scene,
               // brdf_color       *= 40;
 
               //Caustic specular ring w/ the new light
-              global_radiance  *= 0.1;
-              caustic_radiance *= 40;
-              brdf_color       *= 1;
-
-              // COS 526
-              // global_radiance  *= 1.0 / 10000000000000000;
-              // caustic_radiance *= 100.0;
-              //brdf_color       *= 1.0 / 8;
+              // global_radiance  *= 0.1;
+              // caustic_radiance *= 150;
+              // brdf_color       *= 0.1;
 
               color += contribution_factor * global_radiance;
               color += contribution_factor * caustic_radiance;

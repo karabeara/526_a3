@@ -47,15 +47,29 @@ Here, we implement photon mapping, an algorithm for synthesis of global illumina
 
 <p><hr><p><a name='Photon Emission'></a><h2>PHOTON EMISSION</h2><p><hr><p>
 
-For every light source in the scene, we emit photons in random directions. The total number of photons emitted from each light source are proportional to the power of the light source such that each photon carries approximately equal power. The assigned R3Light sources all are given the same value for Intensity, and thus we use the respective RNRgb value of the light to determine a light's intensity instead.
+For every light source in the scene, we emit packets of light which we call photons. The total number of photons emitted from each light source are proportional to the power of the light source such that each photon carries approximately equal power. The assigned R3Light sources all are given the same value for Intensity, and thus we use the respective RNRgb value of the light to determine a light's intensity instead. In order to initially launch each photon into the scene, we created a RandomlySampledRay() function to provide a randomly sample ray from the corresponding light source.
 
-<br><br>Currently we've implemented the point light correctly with proper calculations for uniformly randomly sampled rays from the light source and proper power fall-off. Area, directional, and spot lights are in the works so that the distribution of photons is proportional to the power in each direction. Each light source has a function returning a randomly sampled ray from the light source with the name RandomlySampledRay().
-
-<br>
-<br>
+<br><br>
 
 <a href='Results/point_light.png'><img src='Results/point_light.png' width=48%;></a>
 
+<br><br>We implemented the point light by emitting photons from uniformly randomly sampled rays from position of the light source. The spot light serves as a type of point light where beyond a certain angle, the spot light will not emit light. We calculated whether light would be emitted in the uniformly randomly sampled direction by measuring the cosine between the central direction of the spot light and the sampled direction, recalculating the ray if the ray was out of the emitting bounds of the spot light.
+
+<br><br>For the area light, we uniformly choose a spot on the area of the light source and emit a photons along a uniformly randomly sampled rays in the hemisphere as determined by the direction of the light.
+
+<br><br>The directional light is a little different because we are only given the direction of the light. Therefore we rendered an overly-large circle offscreen tilted at the angle of the direction of light and then emitted photons from uniformly randomly sampled rays from the light surface. 
+
+All light intensities follow proper fall-off properties. 
+<!-- Here we see 400 photons in a global photon map as calculated 
+
+<br>
+<br>
+
+<a href='Results/point_light.png'><img src='Results/point.png' width=24%;></a>
+<a href='Results/point_light.png'><img src='Results/spot.png' width=24%;></a>
+<a href='Results/point_light.png'><img src='Results/area.png' width=24%;></a>
+<a href='Results/point_light.png'><img src='Results/directional.png' width=24%;></a>
+ -->
 <br>
 <br>
 
@@ -93,17 +107,13 @@ We use the R3Kdtree class in R3Shapes to implement our kd-tree. This provides a 
 
 <p><hr><p><a name='Multiple Photon Maps'></a><h2>MULTIPLE PHOTON MAPS</h2><p><hr><p>
 
-We implement two separate photons maps for global (L{S|D}*D) and caustic (LS+D) ray paths. Global ray paths represent the traveling course of all photons emitted from the light sources, while caustic ray paths represent high energy photons from specular and transparent surfaces.
-
-<br><br> Right now, both photon maps are consulted independently at rendering time as we will look at next.
-
-<br><br> Here's a visualization of the placement of photons in the global and caustic photon maps respectively.
+We implement two separate photons maps for global (L{S|D}*D) and caustic (LS+D) ray paths. Global ray paths represent the traveling course of all photons emitted from the light sources, while caustic ray paths represent high energy photons from specular and transparent surfaces. Both photon maps are consulted independently at rendering time as we will look at next. Here's a visualization of the placement of photons in the global and caustic photon maps respectively.
 
 <br>
 <br>
 
-<a href='Results/global_photons.png'><img src='Results/global_photons.png' width=48%;></a>
-<a href='Results/caustic_photons.png'><img src='Results/caustic_photons.png' width=48%;></a>
+<a href='Results/global_photons.png'><img src='Results/global_photons.png' width=24%;></a>
+<a href='Results/caustic_photons.png'><img src='Results/caustic_photons.png' width=24%;></a>
 
 
 <br>
@@ -114,28 +124,21 @@ We implement two separate photons maps for global (L{S|D}*D) and caustic (LS+D) 
 
 <p><hr><p><a name='Camera Raytracing'></a><h2>CAMERA RAYTRACING</h2><p><hr><p>
 
-We implemented a raytracer to deal with transmission of light. This raytracing shoots a ray from the camera's eye through each pixel and bounces a ray around the scene until a diffuse surface is found. From this diffuse surface, we then identify the resulting color by adding up contributions from direct ray-traced illumination, indirect illumination from the global photon map, and caustic illumination from the caustic photon map.
-
-<br><br>I am still a little unclear about rendering the calculate of indirection illumination from the radiance estimate, so I need to ask about that.
+We implemented a raytracer to deal with transmission of direct light. This raytracing shoots a ray (or multiple rays) from the camera's eye through each pixel and bounces this ray around the scene until a diffuse surface is reached. From this diffuse surface, we then identify the resulting color by adding up contributions from direct ray-traced illumination, indirect illumination from the global photon map, and caustic illumination from the caustic photon map.
 
 <br>
 <br>
-
-<a href='Results/cornell165.jpg'><img src='Results/cornell165.jpg' width=200px;></a>
-
-
-<br>
-<br>
-
 
 <p><hr><p><a name='Radiance Estimation'></a><h2>RADIANCE ESTIMATION</h2><p><hr><p>
 
-From a look-up in the global and caustic pre-computed photon maps, radiance is calculated by summing up the N closest photons in the photon map, multiplying by the surface's BRDF, and dividing by the surface area from which the photons were sampled. This is an estimate of surface radiance as we are sampling the light from approximately flat surfaces. 
+From a look-up in the global and caustic pre-computed photon maps, radiance is calculated by summing up the N closest photons in the photon map, multiplying by the surface's BRDF, and dividing by the surface area from which the photons were sampled. This is an estimate of surface radiance as we are sampling the light from approximately flat surfaces. Below we see radiance estimations from a global photon map with N=5, N=50, and N=500, from left to right. All images below were rendered from a map of 40,000 global photons.
 
 <br>
 <br>
 
-<a href='Results/radiance_estimation.jpg'><img src='Results/radiance_estimation.jpg' width=200px;></a>
+<a href='Results/fog_caustic_indirect_illumination_contribution_5photons.jpg'><img src='Results/fog_caustic_indirect_illumination_contribution_5photons.jpg' width=32%;></a>
+<a href='Results/fog_caustic_indirect_illumination_contribution_50photons.jpg'><img src='Results/fog_caustic_indirect_illumination_contribution_50photons.jpg' width=32%;></a>
+<a href='Results/fog_caustic_indirect_illumination_contribution_500photons.jpg'><img src='Results/fog_caustic_indirect_illumination_contribution_500photons.jpg' width=32%;></a>
 
 <br>
 <br>
@@ -145,13 +148,15 @@ As for volume and volume caustic pre-computed photon maps, radiance is calculate
 <br>
 <br>
 
-<br><br>We implemented cone and Gaussian filtering methods for weighting photons during radiance estimation. Images to come.
+We implemented cone and Gaussian filtering methods for weighting photons during radiance estimation. We did not observe a large difference in radiance estimates with or without filtering. See the EstimateSurfaceRadiance() function in render.cpp for implementation.
 
 <br>
 <br>
 
 
 <p><hr><p><a name='Pixel integration'></a><h2>PIXEL INTEGRATION</h2><p><hr><p>
+
+For antialiasing, we provide the ability send multiple rays out per pixel. Instead of shooting rays out directly from the rays
 
 For surfaces with a combination of diffuse, specular, transparent, and absorbing properties, we want to trace multiple rays per pixel (N) and average the radiance computed for all rays to estimate the radiance to store in the output image for each pixel. 
 
@@ -171,8 +176,8 @@ For surfaces with a combination of diffuse, specular, transparent, and absorbing
 <br>
 <br>
 
-<a href='Results/stilllife004_raytracer.jpg'><img src='Results/stilllife004_raytracer.jpg' width=48%;></a>
-<a href='Results/stilllife004_32_rays_per_pixel_40000global_10000caustic.jpg'><img src='Results/stilllife004_32_rays_per_pixel_40000global_10000caustic.jpg' width=48%;></a>
+<a href='Results/stilllife004_raytracer.jpg'><img src='Results/stilllife004_raytracer.jpg' width=24%;></a>
+<a href='Results/stilllife004_32_rays_per_pixel_40000global_10000caustic.jpg'><img src='Results/stilllife004_32_rays_per_pixel_40000global_10000caustic.jpg' width=24%;></a>
 
 
 <br>
@@ -181,7 +186,7 @@ For surfaces with a combination of diffuse, specular, transparent, and absorbing
 
 <p><hr><p><a name='Participating Medium'></a><h2>PARTICIPATING MEDIUM</h2><p><hr><p>
 
-We conducted ray-marching in the scene to calculate single scattering. For every ray shot into the scene, we would sample N uniformly distributed points on the ray's trajectory to 
+We conducted ray-marching in the scene to calculate single scattering. For every ray shot into the scene, we would sample N uniformly distributed points on the ray's trajectory. For each light source, if there exists a direct path from the sampled point to the corresponding light, a medium- and light-specific contribution is added to the corresponsing ray radiance estimation. Here's an example where we sample N=100 samples per ray for 6 separate renders.
 
 <br> 
 <br>
@@ -191,29 +196,65 @@ We conducted ray-marching in the scene to calculate single scattering. For every
 <br>
 <br>
 
-In the future we could run the program with two extra photon maps: a volume photon map & a volume caustics photon map. While ray-marching along these N uniformly distributed points on the ray of camera -> surface-intersection, we would look up in our new respective maps the closest 
+In the future we could run the program with two extra photon maps: a volume photon map & a volume caustics photon map. While ray-marching along these N uniformly distributed points on the ray of camera -> surface-intersection, we would look up in our new respective maps the closest N photons to each of the sampled points along the march, then calculating the contribution from the volumetric radiance estimation.
 
 
 
 <h1>ART GALLERY</h1>
 
 
-<p><hr><p><a name='Participating Medium'></a><h2>PARTICIPATING MEDIUM</h2><p><hr><p>
+<p><hr><p>
 
-We implemented a raytracer to deal with transmission of light. This raytracing shoots a ray from the camera's eye through each pixel and bounces a ray around the scene until a diffuse surface is found. From this diffuse surface, we then identify the resulting color by adding up contributions from direct ray-traced illumination, indirect illumination from the global photon map, and caustic illumination from the caustic photon map.
+Below we see the contributions of raytracing for direct illumination, global photon map look-up for indirect illumination, caustic photon map look-up for caustics, and ray marching for the participating medium, from left to right respectively.
 
-<br><br>I am still a little unclear about rendering the calculate of indirection illumination from the radiance estimate, so I need to ask about that.
+<br> <br>
+
+<a href='Results/fog_caustic_raytracer_contribution.jpg'><img src='Results/fog_caustic_raytracer_contribution.jpg' width=24%;></a>
+<a href='Results/fog_caustic_indirect_illumination_contribution.jpg'><img src='Results/fog_caustic_indirect_illumination_contribution.jpg' width=24%;></a>
+<a href='Results/fog_caustic_caustic_contribution.jpg'><img src='Results/fog_caustic_caustic_contribution.jpg' width=24%;></a>
+<a href='Results/fog_caustic_medium_contribution.jpg'><img src='Results/fog_caustic_medium_contribution.jpg' width=24%;></a>
+
+<br><br>
+
+The sum of the above contributions create the following result: 
+
+<br><br>
+
+<a href='Results/fog_caustic_full.jpg'><img src='Results/fog_caustic_full.jpg' width=33%;></a>
 
 <br>
 <br>
 
-<a href='Results/cornell165.jpg'><img src='Results/cornell165.jpg' width=200px;></a>
-
+With more time we would implement volume caustics and further integrate the participating medium.
 
 <br>
 <br>
 
 
+<p><hr><p><a name='Mistakes'></a><h2>MISTAKES</h2><p><hr><p>
+
+For your viewing pleasure, here is a compilation of all saved renders in the process of creating the photon mapping. We used the Cornell Box as the basis for testing for most of this project.
+
+<br>
+<br>
+
+<a href='Results/photon_mapping_mistakes.gif'><img src='Results/photon_mapping_mistakes.gif' width=100px;></a>
+
+
+<br>
+<br>
+
+Here's also an attempt at rendering the specular ring we've seen all the time in class. This is just the caustic rendering without direct / indirection illumination.
+
+
+<br>
+<br>
+
+<a href='Results/ring_caustics.jpg'><img src='Results/ring_caustics.jpg' width=24%;></a>
+
+
+<br>
+<br>
 
 
 
